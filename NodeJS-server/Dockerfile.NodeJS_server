@@ -1,0 +1,21 @@
+# Base NodeJS image
+FROM node:20
+
+# Working directory inside the container
+WORKDIR /app
+
+# Copy dependency files first (better Docker cache)
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy application source
+COPY src/ ./src/
+
+# Runtime configuration (will be set via docker-compose)
+ENV SERVER_HOST=cpp-server
+ENV SERVER_PORT=8080
+
+# Start NodeJS server
+CMD ["npm", "start"]

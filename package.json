@@ -1,0 +1,8 @@
+{
+  "name": "drive-project",
+  "private": true,
+  "scripts": {
+    "docker:start": "docker-compose up --build",
+    "docker:start:open": "docker-compose up --build -d && timeout 5 && start http://localhost:3000"
+  }
+}

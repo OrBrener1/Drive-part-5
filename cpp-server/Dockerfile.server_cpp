@@ -1,0 +1,28 @@
+# Base GCC image with build tools
+FROM gcc:latest
+
+# Install CMake
+RUN apt-get update && apt-get install -y cmake
+
+# Storage directory used by LocalFileManager
+ENV STORAGE_DIR=/storage_file
+
+# Make the storage persistent
+VOLUME ["/storage_file"]
+
+# App directory inside container
+WORKDIR /app
+
+# Copy entire project (server needs all sources + headers)
+COPY src/ ./src/
+COPY CMakeLists.txt ./
+
+# Build server
+RUN mkdir build
+WORKDIR /app/build
+
+# Build only the server executable
+RUN cmake /app && make drive-server
+
+# Default command
+CMD ["./drive-server"]

@@ -1,0 +1,78 @@
+/* react-front/src/components/RenameModal.css */
+
+/* Semi-transparent background overlay */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background: var(--overlay-bg);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 1000;
+}
+
+/* Modal container */
+.modal.rename-modal {
+  background: var(--bg-card);
+  width: 360px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  row-gap: 16px;
+}
+
+/* Title */
+.rename-modal h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Text input */
+.rename-modal input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.rename-modal input[type="text"]:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.rename-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+
+/* Error message */
+.error-text {
+  margin-top: 8px;
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
+/* Action buttons */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}

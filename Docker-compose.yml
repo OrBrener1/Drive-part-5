@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  cpp-server:
+    build:
+      context: ./cpp-server
+      dockerfile: Dockerfile.server_cpp
+    container_name: cpp-server
+    volumes:
+      - cpp_storage:/storage_file
+    command: ["./drive-server", "8080"]
+
+  nodejs-server:
+    build:
+      context: ./NodeJS-server
+      dockerfile: Dockerfile.NodeJS_server
+    container_name: nodejs-server
+    depends_on:
+      - cpp-server
+    ports:
+      - "5000:5000"
+    environment:
+      SERVER_HOST: cpp-server
+      SERVER_PORT: 8080
+
+  react-front:
+    build:
+      context: ./react-front
+      dockerfile: Dockerfile.react
+    container_name: react-front
+    depends_on:
+      - nodejs-server
+    ports:
+      - "3000:3000"
+
+volumes:
+  cpp_storage:

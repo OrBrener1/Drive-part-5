@@ -1,0 +1,108 @@
+/* src/components/user/UserAvatarMenu.css */
+
+.user-avatar-container {
+  position: relative;
+}
+
+.user-avatar-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Small avatar in the top bar */
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+}
+
+/* Dropdown menu container */
+.user-menu {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  min-width: 180px;
+  z-index: 100;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Large avatar preview inside menu */
+.user-avatar-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 12px auto;
+  cursor: default; /* Indicates this is not clickable */
+}
+
+/* Placeholder version of the large preview */
+.user-avatar-preview-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Greeting text */
+.user-menu-greeting {
+  margin: 0 0 12px 0;
+}
+
+/* Logout button hover effect */
+.user-menu button:hover {
+  background-color: var(--interactive-hover);
+}
+
+/* User email displayed above avatar */
+.user-menu-email {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+/* Logout button with icon on the right */
+.user-logout-button {
+  display: flex;
+  flex-direction: row;        /* Force left-to-right order */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  cursor: pointer;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  direction: ltr;            
+}
+
+/* Logout icon (door) */
+.logout-icon {
+  font-size: 16px;
+  line-height: 1;
+}

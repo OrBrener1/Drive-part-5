@@ -1,0 +1,227 @@
+.permOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.permModal {
+  width: min(760px, calc(100vw - 24px));
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.permHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-surface);
+}
+
+.permTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.permCloseBtn {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.permCloseBtn:hover {
+  background: var(--interactive-hover);
+}
+
+.permAddSection {
+  padding: 16px 24px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.permInput {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.permInput:focus {
+  outline: 2px solid var(--focus-ring);
+  border-color: transparent;
+}
+
+.permSelect {
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.permShareBtn {
+  height: 42px;
+}
+
+.permErrorBar {
+  padding: 0 24px;
+}
+
+.permError {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.permBody {
+  padding: 0 24px 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.permSubTitle {
+  margin-top: 20px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.permInfo {
+  padding: 12px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.permList {
+  display: flex;
+  flex-direction: column;
+}
+
+.permRow {
+  display: grid;
+  grid-template-columns: 40px 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.permRow:last-child {
+  border-bottom: none;
+}
+
+.permAvatarHolder {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.permUserCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.permName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.permEmail {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.permRoleSelect {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: right;
+}
+
+.permRoleSelect:hover {
+  background: var(--interactive-hover);
+  color: var(--text-primary);
+}
+
+.permOwnerLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 6px 8px;
+  cursor: default;
+}
+
+.permDeleteBtn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  visibility: hidden;
+}
+
+.permRow:hover .permDeleteBtn {
+  visibility: visible;
+}
+
+.permDeleteBtn:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.permFooter {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  background: var(--bg-surface);
+}
+
+.permDoneBtn {
+  min-width: 100px;
+}

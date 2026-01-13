@@ -1,0 +1,24 @@
+.themeToggle {
+  gap: 6px;
+  padding: 0 12px;
+  height: 38px;
+}
+
+.themeToggle:hover {
+  background: var(--interactive-hover);
+}
+
+.themeToggleIcon {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.themeToggleLabel {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .themeToggle {
+  color: var(--text-primary);
+}

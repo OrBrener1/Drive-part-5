@@ -1,0 +1,41 @@
+.filesListWrap {
+  width: 100%;
+  --files-actions-col: 96px;
+  --files-grid-columns: minmax(240px, 1fr) minmax(180px, 240px)
+    minmax(180px, 240px) var(--files-actions-col);
+}
+
+.filesList {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.filesHeader {
+  display: grid;
+  grid-template-columns: var(--files-grid-columns);
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-transform: none;
+}
+
+.filesHeaderCell {
+  font-weight: 600;
+}
+
+.filesHeaderActions {
+  text-align: right;
+}
+
+.filesListGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}

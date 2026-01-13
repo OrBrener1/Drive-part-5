@@ -1,0 +1,74 @@
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 64px;
+  display: grid;
+  grid-template-columns: 220px minmax(260px, 1fr) 240px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-soft);
+}
+
+.topBarLeft,
+.topBarRight {
+  display: flex;
+  align-items: center;
+}
+
+.topBarRight {
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.driveLogoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  height: 55px;
+  width: auto;
+  border-radius: var(--radius-lg);
+}
+
+.driveLogoBtn:hover {
+  background: transparent;
+}
+
+.driveLogoBtn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.driveLogoImg {
+  height: 55px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  transform: none;
+
+  /* Improve contrast on light backgrounds */
+  filter:
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.28))
+    drop-shadow(0 0 1px rgba(0, 0, 0, 0.25))
+    contrast(1.08)
+    saturate(1.06);
+}
+
+[data-theme="dark"] .driveLogoImg {
+  /* Softer in dark mode */
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45))
+    saturate(1.02);
+}
+
+.topBarCenter {
+  display: flex;
+  justify-content: center;
+}

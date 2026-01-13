@@ -1,0 +1,28 @@
+.image-viewer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+}
+
+.image-toolbar {
+  width: min(960px, 100% - 32px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.viewer-back {
+  align-self: flex-start;
+  margin-bottom: 0;
+}
+
+.image-viewer-img {
+  max-width: 90%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+}

@@ -1,0 +1,199 @@
+/* Overlay – blocks background */
+.move-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Dialog container */
+.move-dialog {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  width: 480px;
+  max-height: 70vh;
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.move-dialog-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.move-dialog-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Body */
+.move-dialog-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Current location (breadcrumbs) */
+.move-dialog-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.location-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.location-pill {
+  background: var(--bg-muted);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+/* Back / More locations links */
+.move-dialog-back,
+.more-locations-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.move-dialog-back:hover,
+.more-locations-btn:hover {
+  text-decoration: underline;
+}
+
+/* Tabs (My locations / Starred) */
+.move-dialog-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-muted);
+  border-radius: 999px;
+  margin: 12px 0 4px 0;
+}
+
+.move-dialog-tabs button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background 0.15s ease;
+}
+
+.move-dialog-tabs button:hover {
+  background: var(--interactive-hover);
+}
+
+.move-dialog-tabs button.active {
+  background: var(--bg-card);
+  box-shadow: var(--shadow-subtle);
+  font-weight: 500;
+}
+
+/* Back button (always on its own line) */
+.move-dialog-back {
+  display: block;              /* FORCE new line */
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  margin: 4px 0 12px 0;
+  text-align: left;
+}
+
+.move-dialog-back:hover {
+  text-decoration: underline;
+}
+
+/* Folder list */
+.move-dialog-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.move-dialog-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.move-dialog-item:hover {
+  background: var(--interactive-hover);
+}
+
+.move-dialog-item.selected {
+  background: var(--interactive-pressed);
+  font-weight: 500;
+}
+
+.move-dialog-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Footer */
+.move-dialog-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.move-dialog-footer button {
+  min-width: 80px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+}
+
+/* Cancel button */
+.move-dialog-footer button:first-child {
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.move-dialog-footer button:first-child:hover {
+  background: var(--interactive-hover);
+}
+
+/* Move button */
+.move-dialog-footer button:last-child {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.move-dialog-footer button:last-child:disabled {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}

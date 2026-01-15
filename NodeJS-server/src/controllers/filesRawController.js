@@ -1,4 +1,4 @@
-const filesRepository = require('../repositories/filesRepository');
+const filesRepository = require('../mongoRepository/mongoFileRepository');
 const cppClientService = require('../services/cppClientService');
 const permissionStore = require('../services/permissionStore');
 
@@ -13,7 +13,7 @@ const getRawFile = async (req, res) => {
   const userId = req.userId;
   const fileId = req.params.id;
 
-  const file = filesRepository.getFileById(fileId);
+  const file = await filesRepository.getFileById(fileId);
   if (!file) {
     return res.status(404).send('File not found');
   }

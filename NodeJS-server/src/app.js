@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const connectDB = require('./db');
+
 
 // ===============================
 // CORS configuration
@@ -28,6 +30,7 @@ app.use('/api/search', require('./routes/search'));
 module.exports = app;
 
 const PORT = 5000;
+connectDB();
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

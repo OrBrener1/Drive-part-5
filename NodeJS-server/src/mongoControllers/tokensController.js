@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const userService = require('./MongoServices/userService');
+const userService = require('../mongoServices/userService');
 
 // JWT secret key
 // In a real system this should be stored securely (environment variable)

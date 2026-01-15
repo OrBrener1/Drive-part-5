@@ -1,4 +1,4 @@
-const userService = require('./MongoServices/userService');
+const userService = require('../mongoServices/userService');
 
 /**
  * POST /api/users

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const connectDB = require('./db');
+
 
 // ===============================
 // CORS configuration
@@ -19,8 +21,10 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // ---------------------------
 
-app.use('/api/users', require('./routes/users'));
-app.use('/api/tokens', require('./routes/tokens'));
+//app.use('/api/users', require('./routes/users'));
+//app.use('/api/tokens', require('./routes/tokens'));
+app.use('/api/users', require('./mongoRoutes/users'));
+app.use('/api/tokens', require('./mongoRoutes/tokens'));
 app.use('/api/files', require('./routes/files'));
 app.use('/api/folders', require('./routes/folders'));
 app.use('/api/search', require('./routes/search'));
@@ -28,6 +32,7 @@ app.use('/api/search', require('./routes/search'));
 module.exports = app;
 
 const PORT = 5000;
+connectDB();
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

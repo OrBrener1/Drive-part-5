@@ -1,11 +1,6 @@
 // src/api/apiClient.js (React Native)
-import { Platform } from "react-native";
 
-const BASE_URL =
-  Platform.OS === "web"
-    ? "http://localhost:5000/api"
-    : "http://10.0.2.2:5000/api";
-
+const BASE_URL = "http://192.168.1.158:5000/api";
 
 // We chose to not use AsyncStorage to keep the tokens, 
 // so the user has to log in again after closing the app. 

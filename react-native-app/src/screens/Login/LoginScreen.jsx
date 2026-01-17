@@ -1,7 +1,9 @@
 import React, { useState, useContext, useMemo } from "react";
-import { ThemeContext } from "../../theme/ThemeContext";
+import { View, Text, TextInput, Pressable, Image } from "react-native";
+import { ThemeContext } from "../../Theme/ThemeContext";
 import { createStyles } from "./LoginScreen.styles";
 import { AuthContext } from "../../context/AuthContext";
+import { useRouter } from "expo-router";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -10,7 +12,7 @@ export default function LoginScreen() {
   const { colors } = theme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { login } = useContext(AuthContext);
-
+  const router = useRouter()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -40,27 +42,32 @@ export default function LoginScreen() {
 
   // ---- Submit ----
   const handleLogin = async () => {
-    setSubmitAttempted(true);
-    setError("");
+  setSubmitAttempted(true);
+  setError("");
+  setLoading(true);
 
-    if (!canSubmit) {
-      setError("Please enter a valid email and password");
-      return;
-    }
-
-    setLoading(true);
-
+  try {
     const result = await login(
       email.trim().toLowerCase(),
       password
     );
-
-    setLoading(false);
+    console.log("LOGIN RESULT:", result);
 
     if (!result.ok) {
       setError(result.message || "Login failed");
     }
-  };
+    if (result.ok) {
+      console.log("ROUTING TO FILES");
+      router.replace("/files");
+    }
+  } catch (e) {
+    console.log("LOGIN ERROR:", e);
+    setError("Unexpected error");
+  } finally {
+    console.log("LOGIN FINALLY");
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.page}>

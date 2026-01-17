@@ -1,38 +1,81 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
-export default StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#2563eb',
-    padding: 14,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  error: {
-    color: 'red',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-});
+/**
+ * Styles factory for LoginScreen.
+ * Receives colors from ThemeContext so all styles
+ * are fully theme-driven (light / dark / future themes).
+ */
+export const createStyles = (colors) =>
+  StyleSheet.create({
+    page: {
+      flex: 1,
+      backgroundColor: colors.background,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    logo: {
+      width: 180,
+      height: 80,
+      marginBottom: 20,
+    },
+
+    card: {
+      width: "90%",
+      maxWidth: 400,
+      backgroundColor: colors.surface,
+      padding: 24,
+      borderRadius: 16,
+    },
+
+    title: {
+      fontSize: 28,
+      fontWeight: "600",
+      textAlign: "center",
+      color: colors.textPrimary,
+    },
+
+    subtitle: {
+      textAlign: "center",
+      color: colors.textSecondary,
+      marginVertical: 8,
+    },
+
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 10,
+      padding: 14,
+      marginTop: 16,
+      color: colors.textPrimary,
+    },
+
+    validationText: {
+      fontSize: 13,
+      marginTop: 6,
+    },
+
+    formError: {
+      color: colors.error,
+      marginTop: 8,
+      textAlign: "center",
+    },
+
+    button: {
+      backgroundColor: colors.primary,
+      padding: 16,
+      borderRadius: 12,
+      marginTop: 24,
+      alignItems: "center",
+    },
+
+    buttonDisabled: {
+      backgroundColor: colors.primaryDisabled,
+    },
+
+    buttonText: {
+      color: "#ffffff",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+  });

@@ -6,6 +6,9 @@ import { API_ENDPOINTS } from "./apiEndpoints";
 export async function login(email, password) {
   const response = await apiFetch(API_ENDPOINTS.LOGIN, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({ email, password }),
   });
 

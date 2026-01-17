@@ -1,4 +1,4 @@
-const User = require('./mongoModels/UsersModel');   
+const User = require('../mongoModels/usersModel');   
 
 // ========================
 // VALIDATIONS (unchanged)

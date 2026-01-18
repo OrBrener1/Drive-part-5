@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const TrashSchema = new mongoose.Schema(
+const BinSchema = new mongoose.Schema(
   {
     fileId: {
       type: String,
@@ -26,7 +26,7 @@ const TrashSchema = new mongoose.Schema(
   }
 );
 
-TrashSchema.index({ fileId: 1, scope: 1 });
-TrashSchema.index({ userId: 1, scope: 1 });
+BinSchema.index({ fileId: 1, scope: 1 });
+BinSchema.index({ userId: 1, scope: 1 });
 
-module.exports = mongoose.model('Trash', TrashSchema);
+module.exports = mongoose.model('Bin', BinSchema);

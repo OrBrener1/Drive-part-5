@@ -1,6 +1,6 @@
 // src/api/apiClient.js (React Native)
 
-const BASE_URL = "http://192.168.1.158:5000/api";
+const BASE_URL = "http://172.20.10.2:5000/api";
 
 // We chose to not use AsyncStorage to keep the tokens, 
 // so the user has to log in again after closing the app. 

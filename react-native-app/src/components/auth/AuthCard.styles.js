@@ -21,6 +21,7 @@ export const createStyles = (colors, layout) => {
     card: {
       width: "90%",
       maxWidth: ms(440),
+      maxHeight: "85%",
       backgroundColor: colors.surface,
       padding: ms(22),
       borderRadius: ms(16),

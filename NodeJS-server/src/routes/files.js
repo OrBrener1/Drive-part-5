@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const filesController = require('../controllers/filesController');
+const filesController = require('../mongoControllers/FilesController');
 const permissionsController = require('../controllers/permissionsController');
 const authService = require('../services/authService');
 const filesRawController = require('../controllers/filesRawController');

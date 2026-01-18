@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, Pressable } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import CreateMenuItem from "./CreateMenuItem";
 
 export default function CreateMenu({

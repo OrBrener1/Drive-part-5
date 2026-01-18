@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, Text } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 
 export default function FilesEmptyState() {
   const { theme } = useContext(ThemeContext);

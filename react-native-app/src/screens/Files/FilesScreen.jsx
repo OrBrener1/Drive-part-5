@@ -1,11 +1,13 @@
 import { useContext, useEffect, useState } from "react";
-import { View, Text } from "react-native";
+import { Alert, View, Text } from "react-native";
 
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { useCreateActions } from "../../hooks/useCreateActions";
 import { useCreateItem } from "../../hooks/useCreateItem";
+import { usePermissionsUI } from "../../hooks/usePermissionsUI";
+import { moveFileToBin, restoreFileFromBin, toggleStar } from "../../api/filesApi";
 
 import FilesHeader from "../../components/files/FilesHeader";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
@@ -13,29 +15,60 @@ import FileList from "../../components/files/FileList";
 import CreateFab from "../../components/files/CreateFab";
 import CreateMenu from "../../components/create/CreateMenu";
 import CreateItemModal from "../../components/create/CreateItemModal";
+import PermissionsModal from "../../components/permissions/PermissionsModal";
 
 export default function FilesScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   const { files, status, loadFiles } = useFiles();
   const { createFile, createFolder, uploadFile } = useCreateActions();
+  const permissionsUI = usePermissionsUI();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
   const create = useCreateItem({
-  onSuccess: loadFiles,
-  onUnauthorized: (err) => {
-    if (err.message === "UNAUTHORIZED") logout();
-  },
-});
+    onSuccess: loadFiles,
+    onUnauthorized: (err) => {
+      if (err.message === "UNAUTHORIZED") logout();
+    },
+  });
 
   useEffect(() => {
     loadFiles().catch((e) => {
       if (e?.message === "UNAUTHORIZED") logout();
     });
   }, [loadFiles, logout]);
+
+  const handleToggleStar = async (item) => {
+    try {
+      await toggleStar(item.id);
+      await loadFiles();
+    } catch (e) {
+      if (e?.message === "UNAUTHORIZED") logout();
+    }
+  };
+
+  const handleMoveToBin = async (item) => {
+    try {
+      await moveFileToBin(item.id);
+      await loadFiles();
+    } catch (e) {
+      if (e?.message === "UNAUTHORIZED") logout();
+      Alert.alert("Failed to move to bin", e?.message || "Please try again.");
+    }
+  };
+
+  const handleRestoreFromBin = async (item) => {
+    try {
+      await restoreFileFromBin(item.id);
+      await loadFiles();
+    } catch (e) {
+      if (e?.message === "UNAUTHORIZED") logout();
+      Alert.alert("Failed to restore", e?.message || "Please try again.");
+    }
+  };
 
   return (
     <View
@@ -58,7 +91,14 @@ export default function FilesScreen() {
       )}
 
       {status === "success" && files.length > 0 && (
-        <FileList files={files} />
+        <FileList
+          files={files}
+          onOpenPermissions={permissionsUI.openPermissions}
+          onToggleStar={handleToggleStar}
+          onMoveToBin={handleMoveToBin}
+          onRestoreFromBin={handleRestoreFromBin}
+          currentUserId={user?.id}
+        />
       )}
 
       <CreateFab onPress={() => setMenuOpen(true)} />
@@ -76,18 +116,23 @@ export default function FilesScreen() {
         onCancel={create.cancelCreate}
       />
       <CreateMenu
-      visible={menuOpen}
-      onClose={() => setMenuOpen(false)}
-      onCreateFile={() => {
-        setMenuOpen(false);
-        create.startCreate("file");
-      }}
-      onCreateFolder={() => {
-        setMenuOpen(false);
-        create.startCreate("folder");
-      }}
-      onUploadFile={uploadFile}
-    />
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onCreateFile={() => {
+          setMenuOpen(false);
+          create.startCreate("file");
+        }}
+        onCreateFolder={() => {
+          setMenuOpen(false);
+          create.startCreate("folder");
+        }}
+        onUploadFile={uploadFile}
+      />
+      <PermissionsModal
+        visible={permissionsUI.isPermOpen}
+        item={permissionsUI.permItem}
+        onClose={permissionsUI.closePermissions}
+      />
     </View>
   );
 }

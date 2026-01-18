@@ -1,7 +1,20 @@
 // src/api/apiClient.js (React Native)
+import { Platform } from "react-native";
+import Constants from "expo-constants";
 import { API_ENDPOINTS } from "./apiEndpoints";
 
-const BASE_URL = "http://172.20.10.2:5000/api";
+const DEFAULT_DEVICE_URL = "http://172.20.10.2:5000/api";
+const DEFAULT_ANDROID_EMULATOR_URL = "http://10.0.2.2:5000/api";
+const DEFAULT_IOS_SIMULATOR_URL = "http://localhost:5000/api";
+
+const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
+const BASE_URL =
+  ENV_URL ||
+  (Platform.OS === "android" && !Constants.isDevice
+    ? DEFAULT_ANDROID_EMULATOR_URL
+    : Platform.OS === "ios" && !Constants.isDevice
+      ? DEFAULT_IOS_SIMULATOR_URL
+      : DEFAULT_DEVICE_URL);
 
 // We chose to not use AsyncStorage to keep the tokens, 
 // so the user has to log in again after closing the app. 

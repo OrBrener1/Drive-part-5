@@ -1,71 +1,86 @@
 import { StyleSheet } from "react-native";
+import { ms } from "../../utils/scale";
 
-/**
- * Styles factory for RegisterScreen.
- * Receives colors from ThemeContext so all styles
- * are fully theme-driven (light / dark / future themes).
- */
 export const createStyles = (colors) =>
   StyleSheet.create({
-    page: {
-      flex: 1,
-      backgroundColor: colors.background,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    logo: {
-      width: 180,
-      height: 80,
-      marginBottom: 20,
-    },
-
-    card: {
-      width: "90%",
-      maxWidth: 400,
-      backgroundColor: colors.surface,
-      padding: 24,
-      borderRadius: 16,
-    },
-
-    title: {
-      fontSize: 28,
-      fontWeight: "600",
-      textAlign: "center",
-      color: colors.textPrimary,
-    },
-
-    subtitle: {
-      textAlign: "center",
-      color: colors.textSecondary,
-      marginVertical: 8,
-    },
-
     input: {
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 10,
-      padding: 14,
-      marginTop: 16,
+      borderRadius: ms(10),
+      padding: ms(12),
+      marginTop: ms(12),
       color: colors.textPrimary,
+      fontSize: ms(14),
     },
 
     validationText: {
-      fontSize: 13,
-      marginTop: 6,
+      fontSize: ms(12),
+      marginTop: ms(4),
+      color: colors.textSecondary,
     },
 
     formError: {
       color: colors.error,
-      marginTop: 8,
+      marginTop: ms(6),
       textAlign: "center",
+      fontSize: ms(13),
+    },
+
+    sectionLabel: {
+      marginTop: ms(12),
+      marginBottom: ms(6),
+      color: colors.textSecondary,
+      fontSize: ms(13),
+    },
+
+    imageActionsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: ms(8),
+    },
+
+    imageActionBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: ms(12),
+      paddingVertical: ms(10),
+      gap: ms(4),
+    },
+
+    imageActionIcon: {
+      fontSize: ms(15),
+    },
+
+    imageActionText: {
+      color: colors.primary,
+      fontWeight: "500",
+      fontSize: ms(13),
+    },
+
+    imagePreview: {
+      width: ms(80),
+      height: ms(80),
+      borderRadius: ms(40),
+      alignSelf: "center",
+      marginVertical: ms(10),
+    },
+
+    removeImage: {
+      color: colors.error,
+      textAlign: "center",
+      marginTop: ms(4),
+      fontSize: ms(13),
     },
 
     button: {
       backgroundColor: colors.primary,
-      padding: 16,
-      borderRadius: 12,
-      marginTop: 24,
+      padding: ms(14),
+      borderRadius: ms(12),
+      marginTop: ms(20),
       alignItems: "center",
     },
 
@@ -75,46 +90,7 @@ export const createStyles = (colors) =>
 
     buttonText: {
       color: "#ffffff",
-      fontSize: 16,
+      fontSize: ms(15),
       fontWeight: "600",
-    },
-    
-    imagePreview: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      alignSelf: "center",
-      marginVertical: 12,
-    },
-
-    removeImage: {
-      color: colors.error,
-      textAlign: "center",
-      marginTop: 6,
-    },
-
-    cameraLink: {
-      color: colors.primary,
-      textAlign: "center",
-      marginTop: 8,
-    },
-
-    fileInput: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 12,
-      padding: 14,
-      marginTop: 16,
-    },
-
-    fileInputText: {
-      color: colors.textSecondary,
-    },
-
-    fileSelected: {
-      color: colors.textPrimary,
     },
   });

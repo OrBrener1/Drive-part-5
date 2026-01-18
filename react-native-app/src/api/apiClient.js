@@ -1,6 +1,7 @@
 // src/api/apiClient.js (React Native)
+import { API_ENDPOINTS } from "./apiEndpoints";
 
-const BASE_URL = "http://192.168.1.158:5000/api";
+const BASE_URL = "http://172.20.10.2:5000/api";
 
 // We chose to not use AsyncStorage to keep the tokens, 
 // so the user has to log in again after closing the app. 
@@ -45,6 +46,38 @@ export async function fetchCurrentUser() {
 
   if (response.status === 401) throw makeHttpError("UNAUTHORIZED", 401, null);
   if (!response.ok) throw makeHttpError("FETCH_CURRENT_USER_FAILED", response.status, null);
+
+  return response.json();
+}
+
+// Create file / folder
+// Endpoint: POST /files
+export async function createItem({ name, type, parentId, content }) {
+  const response = await apiFetch(API_ENDPOINTS.FILES, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name,
+      type,
+      parentId: parentId ?? null,
+      ...(type !== "folder" ? { content: content ?? "" } : {}),
+    }),
+  });
+
+  if (response.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw makeHttpError(
+      body?.error || "CREATE_ITEM_FAILED",
+      response.status,
+      body
+    );
+  }
 
   return response.json();
 }

@@ -1,18 +1,23 @@
 import React, { useState, useContext, useMemo } from "react";
-import { View, Text, TextInput, Pressable, Image } from "react-native";
+import {View, Text, TextInput, Pressable,} from "react-native";
 import { ThemeContext } from "../../Theme/ThemeContext";
-import { createStyles } from "./LoginScreen.styles";
 import { AuthContext } from "../../context/AuthContext";
 import { useRouter } from "expo-router";
+import AuthCard from "../../components/auth/AuthCard";
+import { createStyles } from "./LoginScreen.styles";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(
+    () => createStyles(colors),
+    [colors]
+  );
   const { login } = useContext(AuthContext);
-  const router = useRouter()
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -34,121 +39,110 @@ export default function LoginScreen() {
   const emailTouched = touched.email || submitAttempted;
   const passwordTouched = touched.password || submitAttempted;
 
- const getStatusColor = (isValid, isTouched) => {
-  if (isValid) return { color: colors.success };
-  if (isTouched) return { color: colors.error };
-  return { color: colors.pending };
-  };  
+  const getStatusColor = (isValid, isTouched) => {
+    if (isValid) return { color: colors.success };
+    if (isTouched) return { color: colors.error };
+    return { color: colors.pending };
+  };
 
   // ---- Submit ----
   const handleLogin = async () => {
-  setSubmitAttempted(true);
-  setError("");
-  setLoading(true);
+    setSubmitAttempted(true);
+    setError("");
+    setLoading(true);
 
-  try {
-    const result = await login(
-      email.trim().toLowerCase(),
-      password
-    );
-    console.log("LOGIN RESULT:", result);
+    try {
+      const result = await login(
+        email.trim().toLowerCase(),
+        password
+      );
 
-    if (!result.ok) {
-      setError(result.message || "Login failed");
+      if (!result.ok) {
+        setError(result.message || "Login failed");
+      } else {
+        router.replace("/files");
+      }
+    } catch {
+      setError("Unexpected error");
+    } finally {
+      setLoading(false);
     }
-    if (result.ok) {
-      console.log("ROUTING TO FILES");
-      router.replace("/files");
-    }
-  } catch (e) {
-    console.log("LOGIN ERROR:", e);
-    setError("Unexpected error");
-  } finally {
-    console.log("LOGIN FINALLY");
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <View style={styles.page}>
-      {/* Logo */}
-      <Image
-        source={require("../../../assets/ogs-logo.png")}
-        style={styles.logo}
-        resizeMode="contain"
+    <AuthCard
+      title="Log in"
+      subtitle="Welcome back. Keep your files in sync."
+      footer={
+        <Text style={styles.footerText}>
+          Don’t have an account?{" "}
+          <Text
+            style={styles.footerLink}
+            onPress={() => router.push("/register")}
+          >
+            Create one
+          </Text>
+        </Text>
+      }
+    >
+      {error ? <Text style={styles.formError}>{error}</Text> : null}
+
+      {/* Email */}
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        onChangeText={setEmail}
+        onBlur={() =>
+          setTouched((prev) => ({ ...prev, email: true }))
+        }
       />
 
-      <View style={styles.card}>
-        <Text style={styles.title}>Log in</Text>
-        <Text style={styles.subtitle}>
-          Welcome back. Keep your files in sync.
+      <Text
+        style={[
+          styles.validationText,
+          getStatusColor(isEmailValid, emailTouched),
+        ]}
+      >
+        Valid email format
+      </Text>
+
+      {/* Password */}
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        onBlur={() =>
+          setTouched((prev) => ({ ...prev, password: true }))
+        }
+      />
+
+      <Text
+        style={[
+          styles.validationText,
+          getStatusColor(isPasswordPresent, passwordTouched),
+        ]}
+      >
+        Password is required
+      </Text>
+
+      {/* Submit */}
+      <Pressable
+        style={[
+          styles.button,
+          !canSubmit && styles.buttonDisabled,
+        ]}
+        onPress={handleLogin}
+        disabled={!canSubmit}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Logging in..." : "Log In"}
         </Text>
-
-        {error ? <Text style={styles.formError}>{error}</Text> : null}
-
-        {/* Email */}
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          onChangeText={setEmail}
-          onFocus={() =>
-            setTouched((prev) => ({ ...prev, email: true }))
-          }
-          onBlur={() =>
-            setTouched((prev) => ({ ...prev, email: true }))
-          }
-        />
-
-        <Text
-          style={[
-            styles.validationText,
-            getStatusColor(isEmailValid, emailTouched),
-          ]}
-        >
-          Valid email format
-        </Text>
-
-        {/* Password */}
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          onFocus={() =>
-            setTouched((prev) => ({ ...prev, password: true }))
-          }
-          onBlur={() =>
-            setTouched((prev) => ({ ...prev, password: true }))
-          }
-        />
-
-        <Text
-          style={[
-            styles.validationText,
-            getStatusColor(isPasswordPresent, passwordTouched),
-          ]}
-        >
-          Password is required
-        </Text>
-
-        {/* Submit */}
-        <Pressable
-          style={[
-            styles.button,
-            !canSubmit && styles.buttonDisabled,
-          ]}
-          onPress={handleLogin}
-          disabled={!canSubmit}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? "Logging in..." : "Log In"}
-          </Text>
-        </Pressable>
-      </View>
-    </View>
+      </Pressable>
+    </AuthCard>
   );
 }

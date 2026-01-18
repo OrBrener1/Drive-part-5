@@ -1,7 +1,7 @@
 // src/context/AuthContext.jsx
 
 import React, { createContext, useState, useEffect, useMemo } from "react";
-import { login as loginApi } from "../api/authApi";
+import * as authApi from "../api/authApi";
 import { apiFetch, setToken } from "../api/apiClient";
 import { API_ENDPOINTS } from "../api/apiEndpoints";
 
@@ -13,11 +13,9 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
 
   const login = async (email, password) => {
-      console.log("AUTH LOGIN START");
     setLoading(true);
     try {
-      const { token } = await loginApi(email, password);
-        console.log("TOKEN RECEIVED");
+      const { token } = await authApi.login(email, password);
       setAuthToken(token);
       setToken(token);
 
@@ -25,14 +23,11 @@ export function AuthProvider({ children }) {
       const res = await apiFetch(API_ENDPOINTS.CURRENT_USER);
       const userData = await res.json();
       setUser(userData);
-      console.log("USER LOADED");
       return { ok: true };
     } catch (err) {
-      console.log("AUTH LOGIN ERROR", err);
       return { ok: false, message: err.message };
     } finally {
       setLoading(false);
-      console.log("AUTH LOGIN FINALLY");
     }
   };
 
@@ -42,6 +37,21 @@ export function AuthProvider({ children }) {
     setToken(null);
   };
 
+  const register = async (email, password, displayName) => {
+
+  try {
+    await authApi.register(email, password, displayName);
+ 
+
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      message: err.message,
+    };
+  }
+};
+
   const value = useMemo(
     () => ({
       token,
@@ -50,6 +60,7 @@ export function AuthProvider({ children }) {
       loading,
       login,
       logout,
+      register,
     }),
     [token, user, loading]
   );

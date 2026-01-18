@@ -38,15 +38,13 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (email, password, displayName) => {
-  console.log("AUTH REGISTER START");
 
   try {
     await authApi.register(email, password, displayName);
-    console.log("REGISTER SUCCESS");
+ 
 
     return { ok: true };
   } catch (err) {
-    console.log("REGISTER ERROR", err.message);
     return {
       ok: false,
       message: err.message,

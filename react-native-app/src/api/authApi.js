@@ -23,3 +23,29 @@ export async function login(email, password) {
 
   return response.json(); // expected: { token }
 }
+
+export async function register(email, password, displayName) {
+  const response = await apiFetch(API_ENDPOINTS.REGISTER, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+      displayName,
+    }),
+  });
+
+  if (!response.ok) {
+    let message = "Registration failed";
+    try {
+      const data = await response.json();
+      message = data.message || data.error || message;
+    } catch {}
+    throw makeHttpError(message, response.status, null);
+  }
+
+  return response.json();
+}
+

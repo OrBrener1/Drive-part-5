@@ -1,5 +1,5 @@
 const filesService = require('../services/filesService');
-const { attachOwnerInfo } = require('../services/ownerInfoService');
+const { attachOwnerInfo } = require('../mongoServices/ownerInfoService');
 
 // validate file id format
 function isValidFileId(id) {
@@ -13,25 +13,25 @@ const getFilesInRootForUser = async (req, res) => {
 
   if (starred === 'true') {
     const files = await filesService.getStarredForUser(userId);
-    return res.status(200).json(attachOwnerInfo(files, userId));
+    return res.status(200).json(await attachOwnerInfo(files, userId));
   }
 
   const files = await filesService.getFilesInRootForUser(userId);
-  return res.status(200).json(attachOwnerInfo(files, userId));
+  return res.status(200).json(await attachOwnerInfo(files, userId));
 };
 
 // GET /api/files/shared
 const getSharedWithMe = async (req, res) => {
   const userId = req.userId;
   const files = await filesService.getSharedWithUser(userId);
-  return res.status(200).json(attachOwnerInfo(files, userId));
+  return res.status(200).json(await attachOwnerInfo(files, userId));
 };
 
 // GET /api/files/recent
 const getRecentFiles = async (req, res) => {
   const userId = req.userId;
   const files = await filesService.getRecentFiles(userId);
-  return res.status(200).json(attachOwnerInfo(files, userId));
+  return res.status(200).json(await attachOwnerInfo(files, userId));
 };
 
 // GET /api/folders
@@ -88,8 +88,8 @@ const getBin = async (req, res) => {
   const userId = req.userId;
 
   try {
-    const items = await filesService.getTrashForUser(userId);
-    return res.status(200).json(attachOwnerInfo(items, userId));
+    const items = await filesService.getBinForUser(userId);
+    return res.status(200).json(await attachOwnerInfo(items, userId));
   } catch (err) {
     console.error('Failed to fetch bin items:', err);
     return res.status(500).json({ error: 'Internal server error' });

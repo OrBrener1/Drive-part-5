@@ -2,11 +2,11 @@ const filesRepository = require('../mongoRepository/mongoFileRepository');
 const { generateId } = require('./idFileService');
 const cppClientService = require('./cppClientService');
 const FileSystemItemFactory = require('../models/FileSystemItemFactory');
-const permissionStore = require('../services/permissionStore');
-const starStore = require('./starStore');
+const permissionService = require('../mongoServices/permissionService');
+const starService = require('../mongoServices/starService');
 const recentStore = require('./recentStore');
-const binStore = require('./binStore');
-const userModel = require('../models/usersModel');
+const binService = require('../mongoServices/binService');
+const userService = require('../mongoServices/userService');
 
 
 function sortByCreatedDesc(items) {
@@ -49,14 +49,14 @@ function deriveContentTypeFromContent(content) {
 }
 
 // Permission manager to check user permissions (with dynamic inheritance)
-const canUserAccessFile = async(userId, file, action) => {
+const canUserAccessFile = async (userId, file, action) => {
   if (!file) return false;
 
   // Fast path: owner of the item
-  if (file.ownerId === userId) return true;
+  if (String(file.ownerId) === String(userId)) return true;
 
   // Explicit permission on the item itself
-  if (permissionStore.hasPermission(userId, file.id, action)) return true;
+  if (await permissionService.hasPermission(userId, file.id, action)) return true;
 
   // Walk up ancestors: if user has permission on a parent folder -> inherited access
   const visited = new Set();
@@ -71,10 +71,10 @@ const canUserAccessFile = async(userId, file, action) => {
     if (!parent) break; // orphan parent
 
     // Owning an ancestor folder implies full control over descendants
-    if (parent.ownerId === userId) return true;
+    if (String(parent.ownerId) === String(userId)) return true;
 
     // Permission on an ancestor implies inherited access
-    if (permissionStore.hasPermission(userId, parent.id, action)) return true;
+    if (await permissionService.hasPermission(userId, parent.id, action)) return true;
 
     currentId = parent.parentId;
   }
@@ -85,29 +85,33 @@ const canUserAccessFile = async(userId, file, action) => {
 //Business logic: get what the user sees
 //in the main Drive screen
 const getFilesInRootForUser = async (userId) => {
-  // My Drive shows only items owned by the user in root, that are not trashed
-   const items = await filesRepository.getFilesInRootForUser(userId);
+  // My Drive shows only items owned by the user in root, that are not in bin
+  const items = await filesRepository.getFilesInRootForUser(userId);
 
-  const visibleRootItems = items  
-    .filter(item => !binStore.isItemOrAncestorInBin(userId, item.id));      
+  const visibleRootItems = [];
+  for (const item of items) {
+    if (!(await binService.isItemOrAncestorInBin(userId, item.id))) {
+      visibleRootItems.push(item);
+    }
+  }
 
-  return addStarFlag(sortByCreatedDesc(visibleRootItems), userId);
+  return await addStarFlag(sortByCreatedDesc(visibleRootItems), userId);
 };
 
 // Returns items that are accessible to the user but owned by others
 // (used for "Shared with me" view)
 const getSharedWithUser = async (userId) => {
-  const permissions = permissionStore.getUserPermissions(userId, 'get');
+  const permissions = await permissionService.getUserPermissions(userId, 'get');
 
- const items = await Promise.all(
+  const items = await Promise.all(
     permissions.map(p => filesRepository.getFileById(p.fileId))
   );
 
   const filtered = [];
   for (const item of items) {
     if (!item) continue;
-    if (item.ownerId === userId) continue;
-    if (binStore.isItemOrAncestorInBin(userId, item.id)) continue;
+    if (String(item.ownerId) === String(userId)) continue;
+    if (await binService.isItemOrAncestorInBin(userId, item.id)) continue;
     if (!(await canUserAccessFile(userId, item, 'get'))) continue;
     filtered.push(item);
   }
@@ -116,24 +120,24 @@ const getSharedWithUser = async (userId) => {
   for (const item of filtered) {
     unique.set(item.id, item);
   }
-  return addStarFlag(sortByCreatedDesc(Array.from(unique.values())), userId);
+  return await addStarFlag(sortByCreatedDesc(Array.from(unique.values())), userId);
 };
 
 // Returns all starred items the user can access (owned or shared, any depth)
 const getStarredForUser = async (userId) => {
-  const starredIds = starStore.getStarredIds(userId);
+  const starredIds = await starService.getStarredIds(userId);
 
   const accessible = [];
   for (const id of starredIds) {
     const item = await filesRepository.getFileById(id);
     if (!item) continue;
-    // if item is in trash, i don't want it to appear in starred view
-    if (binStore.isItemOrAncestorInBin(userId, item.id)) continue;
+    // if item is in bin, i don't want it to appear in starred view
+    if (await binService.isItemOrAncestorInBin(userId, item.id)) continue;
     if (!await canUserAccessFile(userId, item, 'get')) continue;
     accessible.push(item);
   }
 
-  return addStarFlag(accessible, userId);
+  return await addStarFlag(accessible, userId);
 };
 
 // Returns recent items (owned or shared) per-user, sorted by lastOpened desc, limited to 20.
@@ -142,10 +146,10 @@ const getRecentFiles = async (userId) => {
 
  const items = [];
 
-  for (const entry of recents) {
+ for (const entry of recents) {
     const item = await filesRepository.getFileById(entry.fileId);
     if (!item) continue;
-    if (binStore.isItemOrAncestorInBin(userId, item.id)) continue;
+    if (await binService.isItemOrAncestorInBin(userId, item.id)) continue;
     if (!(await canUserAccessFile(userId, item, 'get'))) continue;
 
     items.push({ ...item, lastOpened: entry.lastOpened });
@@ -157,7 +161,7 @@ const getRecentFiles = async (userId) => {
     return bTime - aTime;
   });
 
-  return addStarFlag(items, userId);
+  return await addStarFlag(items, userId);
 };
 
 // Returns folders that can be used as move targets
@@ -168,7 +172,7 @@ const getRecentFiles = async (userId) => {
 const getMoveFolders = async (userId, parentId = null) => {
   let candidates;
 
-if (parentId === null) {
+  if (parentId === null) {
     // Root level: only owned folders in root
     const rootItems = await filesRepository.getFilesInRootForUser(userId);
 
@@ -181,7 +185,7 @@ if (parentId === null) {
 
     if (!parent) return 'PARENT_NOT_FOUND';
     if (parent.type !== 'folder') return 'INVALID_PARENT';
-    if (parent.ownerId !== userId) return 'NO_PERMISSION';
+    if (String(parent.ownerId) !== String(userId)) return 'NO_PERMISSION';
 
     // Only owner can browse move targets
     const children = await filesRepository.getChildren(parentId);
@@ -191,9 +195,12 @@ if (parentId === null) {
     );
   }
 
-  const visible = candidates.filter(
-    folder => !binStore.isItemOrAncestorInBin(userId, folder.id)
-  );
+  const visible = [];
+  for (const folder of candidates) {
+    if (!(await binService.isItemOrAncestorInBin(userId, folder.id))) {
+      visible.push(folder);
+    }
+  }
 
   // Minimal shape for UI
   return visible.map(folder => ({
@@ -211,12 +218,12 @@ const getFileById = async(id, userId) => {
     return { status: 'NOT_FOUND' };
   }
   if (
-      binStore.isItemOrAncestorInBin(userId, file.id) ||
+      await binService.isItemOrAncestorInBin(userId, file.id) ||
       !(await canUserAccessFile(userId, file, 'get'))
     ) {
       return { status: 'FORBIDDEN' };
   }
-  return { status: 'OK', file: addStarToItem(file, userId) };
+  return { status: 'OK', file: await addStarToItem(file, userId) };
 };
 
 
@@ -233,27 +240,34 @@ const getFileByIdWithContent = async (id, userId) => {
   const nowIso = new Date().toISOString();
   const userLastOpened = recentStore.touch(userId, id, nowIso);
   const fileWithUserTime = { ...metaResult.file, lastOpened: userLastOpened };
-  const file = addStarToItem(fileWithUserTime, userId);
+  const file = await addStarToItem(fileWithUserTime, userId);
 
   // 2. Folder → return children names
   if (file.type === 'folder') {
-     if (binStore.isItemOrAncestorInBin(userId, file.id)) {
+    if (await binService.isItemOrAncestorInBin(userId, file.id)) {
     return {
       status: 'OK',
       file: {
-        ...addStarToItem(file, userId),
+        ...(await addStarToItem(file, userId)),
         children: [] // if folder is in bin, its children are not accessible
       }
     };
   }
     const children = await filesRepository.getChildren(file.id);
-    const childrenWithStar = children.map(child => addStarToItem(child, userId));
+    const childrenWithStar = await Promise.all(
+      children.map(child => addStarToItem(child, userId))
+    );
 
-    return {
-      status: 'OK',
-      file: {
-        ...addStarToItem(file, userId),
-        children: childrenWithStar.map(child => ({
+    const childrenWithOwner = await Promise.all(
+      childrenWithStar.map(async child => {
+        const owner = await userService.getUserById(child.ownerId);
+        const ownerName = owner?.displayName || 'Unknown';
+        const ownerEmail = owner?.email || '';
+        const ownerImage = owner?.image || null;
+        const ownerLabel =
+          String(child.ownerId) === String(userId) ? 'me' : ownerName;
+
+        return {
           id: child.id,
           name: child.name,
           type: child.type,
@@ -261,15 +275,20 @@ const getFileByIdWithContent = async (id, userId) => {
           contentType: child.contentType,
           lastOpened: recentStore.getLastOpened(userId, child.id),
           ownerId: child.ownerId,
-          ownerName: userModel.getUserById(Number(child.ownerId))?.displayName || 'Unknown',
-          ownerEmail: userModel.getUserById(Number(child.ownerId))?.email || '',
-          ownerImage: userModel.getUserById(Number(child.ownerId))?.image || null,
-          ownerLabel:
-            Number(child.ownerId) === Number(userId)
-              ? 'me'
-              : (userModel.getUserById(Number(child.ownerId))?.displayName || 'Unknown'),
+          ownerName,
+          ownerEmail,
+          ownerImage,
+          ownerLabel,
           createdAt: child.createdAt
-        }))
+        };
+      })
+    );
+
+    return {
+      status: 'OK',
+      file: {
+        ...(await addStarToItem(file, userId)),
+        children: childrenWithOwner
       }
     };
   }
@@ -297,7 +316,7 @@ const getFileByIdWithContent = async (id, userId) => {
     return {
       status: 'OK',
       file: {
-        ...addStarToItem(file, userId),
+        ...(await addStarToItem(file, userId)),
         contentType,
         content:
           contentType === 'image'
@@ -375,7 +394,7 @@ const createFile = async (userId, name, type, parentId = null, content = '') => 
     }
   }
 
-  filesRepository.saveFile(item);
+  await filesRepository.saveFile(item);
   // Record creator's recent entry so it shows up for them
   recentStore.touch(userId, id, nowIso);
   return { status: 'OK', file: item };
@@ -395,7 +414,7 @@ const updateFileNameById = async (id, userId, newName) => {
     return 'NO_PERMISSION';
   }
 
-  filesRepository.updateFileNameById(id, newName);
+  await filesRepository.updateFileNameById(id, newName);
   return 'OK';
 };
 
@@ -476,11 +495,11 @@ const deleteFileById = async (fileId, userId) => {
     return 'NOT_FOUND';
   }
 
-  const isOwner = item.ownerId === userId;
+  const isOwner = String(item.ownerId) === String(userId);
 
   if (
-  (isOwner && !binStore.isInGlobalBin(fileId)) ||
-  (!isOwner && !binStore.isInUserBin(userId, fileId))
+  (isOwner && !await binService.isInGlobalBin(fileId)) ||
+  (!isOwner && !await binService.isInUserBin(userId, fileId))
   ) {
   return 'FORBIDDEN';
   }
@@ -490,12 +509,12 @@ const deleteFileById = async (fileId, userId) => {
   }
   
   // NON-OWNER: local delete only
-  if (item.ownerId !== userId) {
+  if (String(item.ownerId) !== String(userId)) {
     // Remove only this user's permissions
-    permissionStore.deletePermission(userId, fileId);
+    await permissionService.deletePermissionByUserAndFile(userId, fileId);
 
     // Remove from this user's bin
-    binStore.restoreFromUserBin(userId, fileId);
+    await binService.restoreFromUserBin(userId, fileId);
 
     return 'OK';
   }
@@ -505,13 +524,10 @@ const deleteFileById = async (fileId, userId) => {
     await deleteRecursively(item);
 
     // Remove permissions for everyone
-    const perms = permissionStore.getFilePermissions(fileId);
-    for (const p of perms) {
-      permissionStore.deletePermission(p.id);
-    }
+    await permissionService.deletePermissionsForFile(fileId);
     
     // Remove from all users' bins
-    binStore.removeEverywhere(fileId);
+    await binService.removeEverywhere(fileId);
 
     return 'OK';
   } catch (e) {
@@ -551,14 +567,14 @@ const searchFiles = async (query, userId) => {
   const byName = await filesRepository.searchByName(query);
 
   const visibleByName = [];
-for (const file of byName) {
-  if (
-    await canUserAccessFile(userId, file, 'search') &&
-    !binStore.isItemOrAncestorInBin(userId, file.id)
-  ) {
-    visibleByName.push(file);
+  for (const file of byName) {
+    if (
+      await canUserAccessFile(userId, file, 'search') &&
+      !(await binService.isItemOrAncestorInBin(userId, file.id))
+    ) {
+      visibleByName.push(file);
+    }
   }
-}
   let parsed;
   try {
     const raw = await cppClientService.searchFile(String(query));
@@ -606,7 +622,7 @@ for (const file of byName) {
       // Only do "includes" for text files. For images, cannot validate text presence safely.
       if (contentType === 'text') {
         const text = bodyBuf.toString('utf8');
-        if (binStore.isItemOrAncestorInBin(userId, fileMeta.id)) continue;
+        if (await binService.isItemOrAncestorInBin(userId, fileMeta.id)) continue;
         if (text.includes(query)) {
           byContent.push(fileMeta);
         }
@@ -624,7 +640,7 @@ for (const file of byName) {
     map.set(item.id, item);
   }
 
-  return addStarFlag(sortByCreatedDesc(Array.from(map.values())), userId);
+  return await addStarFlag(sortByCreatedDesc(Array.from(map.values())), userId);
 };
 
 
@@ -736,22 +752,23 @@ const toggleFileStar = async (id, userId) => {
     return 'NO_PERMISSION';
   }
 
-  const starred = starStore.toggle(userId, id);
+  const starred = await starService.toggle(userId, id);
   return { status: 'OK', isStarred: starred };
 };
 
 // ===== Helpers for per-user star flag =====
-function addStarFlag(items, userId) {
-  return items.map(item => addStarToItem(item, userId));
+async function addStarFlag(items, userId) {
+  return Promise.all(items.map(item => addStarToItem(item, userId)));
 }
 // Add isStarred flag to a single item if isn't hidden by bin
-function addStarToItem(item, userId) {
-  const isHiddenByBin = binStore.isItemOrAncestorInBin(userId, item.id);
+async function addStarToItem(item, userId) {
+  const isHiddenByBin = await binService.isItemOrAncestorInBin(userId, item.id);
+  const isStarred = await starService.isStarred(userId, item.id);
 
   return {
     ...item,
     isStarred:
-      starStore.isStarred(userId, item.id) && !isHiddenByBin
+      isStarred && !isHiddenByBin
   };
 }
 
@@ -765,11 +782,11 @@ const moveToBin = async (id, userId) => {
   }
 
   // if owner → move to global bin (hidden from everyone)
-  if (item.ownerId === userId) {
-    binStore.addToGlobalBin(id);
+  if (String(item.ownerId) === String(userId)) {
+    await binService.addToGlobalBin(id, item.parentId);
   } else {
     // non-owner → mask only for that user
-    binStore.moveToUserBin(userId, id);
+    await binService.moveToUserBin(userId, id, item.parentId);
   }
 
   return 'OK';
@@ -783,11 +800,11 @@ const restoreFromBin = async (id, userId) => {
     return 'NO_PERMISSION';
   }
   // if owner → restore from global bin (for all users)
-  if (item.ownerId === userId) {
-    binStore.removeFromGlobalBin(id);
+  if (String(item.ownerId) === String(userId)) {
+    await binService.removeFromGlobalBin(id);
   } else {
     // non-owner → restore only for that user
-    binStore.restoreFromUserBin(userId, id);
+    await binService.restoreFromUserBin(userId, id);
   }
   return 'OK';
 };
@@ -795,11 +812,11 @@ const restoreFromBin = async (id, userId) => {
 // Get all items in bin for user (not including those whose ancestors are also in bin)
 // in bin we show only the items that were directly moved to bin, not their children.
 // we don't show files that the owner moved to bin for everyone.
-const getTrashForUser = async (userId) => {
+const getBinForUser = async (userId) => {
   const items = [];
 
   // user-specific bin
-  const userBinIds = binStore.getBinIds(userId);
+  const userBinIds = await binService.getBinIds(userId);
   for (const id of userBinIds) {
     const item = await filesRepository.getFileById(id);
     if (!item) continue;
@@ -809,15 +826,16 @@ const getTrashForUser = async (userId) => {
   }
 
   // global bin — ONLY for owner
-  for (const id of binStore.globalBin) {
+  const globalBinIds = await binService.getGlobalBinIds();
+  for (const id of globalBinIds) {
     const item = await filesRepository.getFileById(id);
     if (!item) continue;
 
-    if (item.ownerId !== userId) continue;
+    if (String(item.ownerId) !== String(userId)) continue;
     items.push(item);
   }
 
-  return addStarFlag(sortByCreatedDesc(items), userId);
+  return await addStarFlag(sortByCreatedDesc(items), userId);
 };
 
 
@@ -845,12 +863,12 @@ const moveItem = async (userId, sourceId, targetParentId) => {
   if (!source) return 'NOT_FOUND';
 
   // Only owner can move
-  if (source.ownerId !== userId) {
+  if (String(source.ownerId) !== String(userId)) {
     return 'NO_PERMISSION';
   }
 
   // Cannot move items that are in bin
-  if (binStore.isItemOrAncestorInBin(userId, sourceId)) {
+  if (await binService.isItemOrAncestorInBin(userId, sourceId)) {
     return 'IN_BIN';
   }
 
@@ -863,12 +881,12 @@ const moveItem = async (userId, sourceId, targetParentId) => {
     if (targetParent.type !== 'folder') return 'INVALID_TARGET';
 
     // Target must be owned by user
-    if (targetParent.ownerId !== userId) {
+    if (String(targetParent.ownerId) !== String(userId)) {
       return 'NO_PERMISSION';
     }
 
     // Cannot move into bin
-    if (binStore.isItemOrAncestorInBin(userId, targetParentId)) {
+    if (await binService.isItemOrAncestorInBin(userId, targetParentId)) {
       return 'TARGET_IN_BIN';
     }
 
@@ -906,7 +924,7 @@ module.exports = {
   toggleFileStar,
   moveToBin,
   restoreFromBin,
-  getTrashForUser,
+  getBinForUser,
   isDescendant,
   moveItem,
   getMoveFolders

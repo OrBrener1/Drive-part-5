@@ -25,14 +25,14 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 //app.use('/api/tokens', require('./routes/tokens'));
 app.use('/api/users', require('./mongoRoutes/users'));
 app.use('/api/tokens', require('./mongoRoutes/tokens'));
-app.use('/api/files', require('./routes/files'));
-app.use('/api/folders', require('./routes/folders'));
-app.use('/api/search', require('./routes/search'));
+app.use('/api/files', require('./mongoRoutes/files'));
+app.use('/api/folders', require('./mongoRoutes/folders'));
+app.use('/api/search', require('./mongoRoutes/search'));
 
 module.exports = app;
 
 const PORT = 5000;
 connectDB();
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

@@ -1,12 +1,12 @@
 const filesRepository = require('../mongoRepository/mongoFileRepository');
 const cppClientService = require('../services/cppClientService');
-const permissionStore = require('../services/permissionStore');
+const permissionService = require('../mongoServices/permissionService');
 
 // reuse same permission logic style
-function canUserAccessFile(userId, file) {
+async function canUserAccessFile(userId, file) {
   if (!file) return false;
-  if (file.ownerId === userId) return true;
-  return permissionStore.hasPermission(userId, file.id, 'get');
+  if (String(file.ownerId) === String(userId)) return true;
+  return permissionService.hasPermission(userId, file.id, 'get');
 }
 
 const getRawFile = async (req, res) => {
@@ -18,7 +18,7 @@ const getRawFile = async (req, res) => {
     return res.status(404).send('File not found');
   }
 
-  if (!canUserAccessFile(userId, file)) {
+  if (!await canUserAccessFile(userId, file)) {
     return res.status(403).send('Forbidden');
   }
 
@@ -34,7 +34,7 @@ const getRawFile = async (req, res) => {
     return res.status(503).send('File server unavailable');
   }
 
-  // raw is Buffer that contains headers + body → parse like before
+  // raw is Buffer that contains headers + body -> parse like before
   const sep = Buffer.from('\n\n');
   const idx = raw.indexOf(sep);
   if (idx === -1) {

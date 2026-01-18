@@ -1,3 +1,5 @@
 # Ignore artifacts
 node_modules/
 react-front/node_modules/
+react-native-app/node_modules/
+react-native-app/.expo/

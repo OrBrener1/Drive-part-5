@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo } from "react";
-import { View, Text, TextInput, Pressable, Image } from "react-native";
+import {View, Text, TextInput, Pressable, Image, useWindowDimensions,} from "react-native";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { createStyles } from "./LoginScreen.styles";
 import { AuthContext } from "../../context/AuthContext";
@@ -10,7 +10,9 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function LoginScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { width, height } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(colors, { width, height }), [colors, width, height]);
+  
   const { login } = useContext(AuthContext);
   const router = useRouter()
   const [email, setEmail] = useState("");
@@ -51,20 +53,16 @@ export default function LoginScreen() {
       email.trim().toLowerCase(),
       password
     );
-    console.log("LOGIN RESULT:", result);
 
     if (!result.ok) {
       setError(result.message || "Login failed");
     }
     if (result.ok) {
-      console.log("ROUTING TO FILES");
       router.replace("/files");
     }
   } catch (e) {
-    console.log("LOGIN ERROR:", e);
     setError("Unexpected error");
   } finally {
-    console.log("LOGIN FINALLY");
     setLoading(false);
   }
 };
@@ -148,6 +146,16 @@ export default function LoginScreen() {
             {loading ? "Logging in..." : "Log In"}
           </Text>
         </Pressable>
+          {/* REGISTER LINK*/}
+          <Text style={{ textAlign: "center", marginTop: 16 }}>
+            Don’t have an account?{" "}
+            <Text
+              style={{ color: colors.primary, fontWeight: "600" }}
+              onPress={() => router.push("/register")}
+            >
+              Create one
+            </Text>
+          </Text>
       </View>
     </View>
   );

@@ -1,4 +1,28 @@
+// src/Theme/Theme.js
+
+const baseTokens = {
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+  },
+  typography: {
+    title: 22,
+    body: 15,
+    small: 13,
+  },
+  radius: {
+    sm: 8,
+    md: 12,
+    lg: 16,
+    round: 999,
+  },
+};
+
 export const lightTheme = {
+  ...baseTokens,
   colors: {
     background: "#f5f7fb",
     surface: "#ffffff",
@@ -17,6 +41,7 @@ export const lightTheme = {
 };
 
 export const darkTheme = {
+  ...baseTokens,
   colors: {
     background: "#0f172a",
     surface: "#020617",

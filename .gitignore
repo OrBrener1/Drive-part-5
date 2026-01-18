@@ -1,5 +1,15 @@
-# Ignore artifacts
+# dependencies
 node_modules/
 react-front/node_modules/
 react-native-app/node_modules/
+
+# Expo
 react-native-app/.expo/
+
+# IDE / Editor
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

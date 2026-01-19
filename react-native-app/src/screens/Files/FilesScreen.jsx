@@ -1,7 +1,9 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { View, Text } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
 
-import { ThemeContext } from "../../theme/themeContext";
+import { uploadFile } from "../../api/apiClient";
+import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -29,19 +31,25 @@ export default function FilesScreen() {
     });
   }, [loadFiles, logout]);
 
-  const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+  async function pickAndUploadFile() {
+  const result = await DocumentPicker.getDocumentAsync({
+    type: ["image/*", "text/*"],
+    copyToCacheDirectory: true,
+  });
 
-  const search = useSearchFiles(query);
-  const listData = useMemo(() => {
-    if (query.trim()) {
-      return search.results;
-    }
-    return files;
-  }, [files, query, search.results]);
+  if (result.canceled) return;
+
+  const file = result.assets[0];
+
+  const uploadPayload = {
+    uri: file.uri,
+    name: file.name,
+    type: file.mimeType || "application/octet-stream",
+  };
+
+  await uploadFile(uploadPayload);
+  loadFiles();
+}
 
   return (
     <View
@@ -77,28 +85,40 @@ export default function FilesScreen() {
         <FilesEmptyState />
       )}
 
-      {status === "success" && listData.length > 0 && (
-        <FileList
-          files={listData}
-          onOpenPermissions={permissionsUI.openPermissions}
-          onToggleStar={handleToggleStar}
-          onMoveToBin={handleMoveToBin}
-          onRestoreFromBin={handleRestoreFromBin}
-          currentUserId={user?.id}
-        />
+      {status === "success" && files.length > 0 && (
+        <FileList files={files} />
       )}
 
-      <CreateOverlay
-        onCreated={loadFiles}
-        onUnauthorized={(err) => {
-          if (err?.message === "UNAUTHORIZED") logout();
-        }}
+      <CreateFab onPress={() => setMenuOpen(true)} />
+      <CreateItemModal
+        visible={Boolean(create.createType)}
+        type={create.createType}
+        name={create.name}
+        content={create.content}
+        nameError={create.nameError}
+        createError={create.createError}
+        canSubmit={create.canSubmit}
+        onNameChange={create.onNameChange}
+        onContentChange={create.onContentChange}
+        onSubmit={create.submit}
+        onCancel={create.cancelCreate}
       />
-      <PermissionsModal
-        visible={permissionsUI.isPermOpen}
-        item={permissionsUI.permItem}
-        onClose={permissionsUI.closePermissions}
-      />
+      <CreateMenu
+      visible={menuOpen}
+      onClose={() => setMenuOpen(false)}
+      onCreateFile={() => {
+        setMenuOpen(false);
+        create.startCreate("file");
+      }}
+      onCreateFolder={() => {
+        setMenuOpen(false);
+        create.startCreate("folder");
+      }}
+      onUploadFile={async () => {
+      setMenuOpen(false);
+      await pickAndUploadFile();
+      }}
+    />
     </View>
   );
 }

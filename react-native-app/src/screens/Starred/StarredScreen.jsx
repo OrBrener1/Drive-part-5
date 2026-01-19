@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { View, Text } from "react-native";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useStarredFiles } from "../../hooks/useStarredFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -13,8 +13,8 @@ import PermissionsModal from "../../components/permissions/PermissionsModal";
 import CreateOverlay from "../../components/create/CreateOverlay";
 
 export default function StarredScreen() {
-  const { theme } = useContext(ThemeContext);
-  const { colors } = theme;
+  const { Theme } = useContext(ThemeContext);
+  const { colors } = Theme;
   const { logout, user } = useContext(AuthContext);
   const { files, status, loadFiles } = useStarredFiles();
   const permissionsUI = usePermissionsUI();

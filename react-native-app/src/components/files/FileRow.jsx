@@ -1,7 +1,7 @@
 import { useContext, useMemo, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/ThemeContext";
 
 export default function FileRow({
   item,

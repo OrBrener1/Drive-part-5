@@ -55,7 +55,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
   // --------------------
 
   const canSubmit = useMemo(() => {
-    if (!type) return false;
+    if  (type !== "file" && type !== "folder") return false;
     if (!name.trim()) return false;
     if (nameError) return false;
     return true;
@@ -72,7 +72,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
     setName("");
     setContent("");
 
-    setNameError("Name is required");
+    setNameError("");
     setCreateError("");
   }
 
@@ -96,7 +96,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
         name: name.trim(),
         type,
         parentId,
-        ...(type !== "folder" ? { content } : {}),
+        ...(type === "file" ? { content } : {}),
       });
 
       cancelCreate();

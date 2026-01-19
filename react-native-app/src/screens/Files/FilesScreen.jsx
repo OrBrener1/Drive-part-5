@@ -1,5 +1,6 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
@@ -23,11 +24,13 @@ export default function FilesScreen() {
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    loadFiles().catch((e) => {
-      if (e?.message === "UNAUTHORIZED") logout();
-    });
-  }, [loadFiles, logout]);
+  useFocusEffect(
+    useCallback(() => {
+      loadFiles().catch((e) => {
+        if (e?.message === "UNAUTHORIZED") logout();
+      });
+    }, [loadFiles, logout])
+  );
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({

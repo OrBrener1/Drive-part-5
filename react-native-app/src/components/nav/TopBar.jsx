@@ -35,12 +35,12 @@ export default function TopBar({
         style={{
           flexDirection: "row",
           alignItems: "center",
-          gap: 12,
           paddingVertical: 10,
         }}
       >
         <Pressable
           onPress={() => setUserMenuOpen(true)}
+          hitSlop={8}
           style={{
             width: 36,
             height: 36,
@@ -48,6 +48,7 @@ export default function TopBar({
             backgroundColor: colors.primary,
             alignItems: "center",
             justifyContent: "center",
+            zIndex: 2,
           }}
         >
           {user?.image ? (
@@ -70,6 +71,7 @@ export default function TopBar({
             paddingHorizontal: 12,
             borderWidth: 1,
             borderColor: colors.border,
+            marginHorizontal: 10,
           }}
         >
           <MaterialIcons name="search" size={18} color={colors.textSecondary} />
@@ -89,6 +91,7 @@ export default function TopBar({
 
         <Pressable
           onPress={() => setNavMenuOpen(true)}
+          hitSlop={8}
           style={{
             width: 36,
             height: 36,
@@ -98,6 +101,7 @@ export default function TopBar({
             borderWidth: 1,
             borderColor: colors.border,
             backgroundColor: colors.surface,
+            zIndex: 2,
           }}
         >
           <MaterialIcons name="menu" size={20} color={colors.textSecondary} />

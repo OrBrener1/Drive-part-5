@@ -1,5 +1,6 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useSharedFiles } from "../../hooks/useSharedFiles";
@@ -26,11 +27,13 @@ export default function SharedScreen() {
       onUnauthorized: () => logout(),
     });
 
-  useEffect(() => {
-    loadFiles().catch((e) => {
-      if (e?.message === "UNAUTHORIZED") logout();
-    });
-  }, [loadFiles, logout]);
+  useFocusEffect(
+    useCallback(() => {
+      loadFiles().catch((e) => {
+        if (e?.message === "UNAUTHORIZED") logout();
+      });
+    }, [loadFiles, logout])
+  );
 
   const search = useSearchFiles(query);
   const listData = useMemo(() => {

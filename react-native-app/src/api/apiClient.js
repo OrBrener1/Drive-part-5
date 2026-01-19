@@ -1,20 +1,12 @@
 // src/api/apiClient.js (React Native)
-import { Platform } from "react-native";
-import Constants from "expo-constants";
+
 import { API_ENDPOINTS } from "./apiEndpoints";
+// src/api/apiClient.js
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const DEFAULT_DEVICE_URL = "http://172.20.10.2:5000/api";
-const DEFAULT_ANDROID_EMULATOR_URL = "http://10.0.2.2:5000/api";
-const DEFAULT_IOS_SIMULATOR_URL = "http://localhost:5000/api";
-
-const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
-const BASE_URL =
-  ENV_URL ||
-  (Platform.OS === "android" && !Constants.isDevice
-    ? DEFAULT_ANDROID_EMULATOR_URL
-    : Platform.OS === "ios" && !Constants.isDevice
-      ? DEFAULT_IOS_SIMULATOR_URL
-      : DEFAULT_DEVICE_URL);
+if (!BASE_URL) {
+  throw new Error("EXPO_PUBLIC_API_URL is not defined");
+}
 
 // We chose to not use AsyncStorage to keep the tokens, 
 // so the user has to log in again after closing the app. 
@@ -53,8 +45,8 @@ export async function apiFetch(path, options = {}) {
       headers,
       signal: controller.signal,
     });
-
     return response;
+
   } catch (err) {
     if (err?.name === "AbortError") {
       throw makeHttpError("NETWORK_TIMEOUT", 0, null);
@@ -71,9 +63,20 @@ export async function apiFetch(path, options = {}) {
 export async function fetchCurrentUser() {
   const response = await apiFetch(API_ENDPOINTS.CURRENT_USER);
 
-  if (response.status === 401) throw makeHttpError("UNAUTHORIZED", 401, null);
-  if (!response.ok) throw makeHttpError("FETCH_CURRENT_USER_FAILED", response.status, null);
+  // Authentication error - let caller decide (e.g. logout)
+  if (response.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
 
+  // Other server errors
+  if (!response.ok) {
+    throw makeHttpError(
+      "FETCH_CURRENT_USER_FAILED",
+      response.status,
+      null
+    );
+  }
+  
   return response.json();
 }
 

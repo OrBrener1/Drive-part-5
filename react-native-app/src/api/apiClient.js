@@ -37,18 +37,32 @@ function makeHttpError(message, status, body) {
 
 export async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers || {}) };
+  const timeoutMs = options.timeoutMs ?? 15000;
 
   const token = getToken();
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  return response;
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+
+    return response;
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      throw makeHttpError("NETWORK_TIMEOUT", 0, null);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ---- Example ports of the functions you already have ----

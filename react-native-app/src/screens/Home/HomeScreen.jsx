@@ -1,39 +1,36 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { View, Text } from "react-native";
-
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
-import { useFiles } from "../../hooks/useFiles";
+import { useRecentFiles } from "../../hooks/useRecentFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
 import { useFileActions } from "../../hooks/useFileActions";
 import { useSearchFiles } from "../../hooks/useSearchFiles";
-
-import FilesEmptyState from "../../components/files/FilesEmptyState";
-import FileList from "../../components/files/FileList";
-import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
+import FileList from "../../components/files/FileList";
+import FilesEmptyState from "../../components/files/FilesEmptyState";
+import PermissionsModal from "../../components/permissions/PermissionsModal";
 import CreateOverlay from "../../components/create/CreateOverlay";
 
-export default function FilesScreen() {
+export default function HomeScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-
   const { logout, user } = useContext(AuthContext);
-  const { files, status, loadFiles } = useFiles();
+  const { files, status, loadFiles } = useRecentFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    loadFiles().catch((e) => {
-      if (e?.message === "UNAUTHORIZED") logout();
-    });
-  }, [loadFiles, logout]);
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({
       loadFiles,
       onUnauthorized: () => logout(),
     });
+
+  useEffect(() => {
+    loadFiles().catch((e) => {
+      if (e?.message === "UNAUTHORIZED") logout();
+    });
+  }, [loadFiles, logout]);
 
   const search = useSearchFiles(query);
   const listData = useMemo(() => {
@@ -44,31 +41,26 @@ export default function FilesScreen() {
   }, [files, query, search.results]);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: 16,
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
-        My Drive
+        Recent
       </Text>
+
       {status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
           Loading files...
         </Text>
       )}
 
       {query.trim() && search.status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
           Searching...
         </Text>
       )}
 
       {query.trim() && search.status === "error" && (
-        <Text style={{ color: colors.textSecondary }}>
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
           Search failed. Try again.
         </Text>
       )}

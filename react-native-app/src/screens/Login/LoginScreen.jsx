@@ -60,7 +60,7 @@ export default function LoginScreen() {
       if (!result.ok) {
         setError(result.message || "Login failed");
       } else {
-        router.replace("/files");
+        router.replace("/(tabs)/home");
       }
     } catch {
       setError("Unexpected error");

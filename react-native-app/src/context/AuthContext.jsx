@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import * as authApi from "../api/authApi";
-import { apiFetch, setToken } from "../api/apiClient";
+import { apiFetch, makeHttpError, setToken } from "../api/apiClient";
 import { API_ENDPOINTS } from "../api/apiEndpoints";
 
 export const AuthContext = createContext(null);
@@ -21,6 +21,12 @@ export function AuthProvider({ children }) {
 
       // fetch current user
       const res = await apiFetch(API_ENDPOINTS.CURRENT_USER);
+      if (res.status === 401) {
+        throw makeHttpError("UNAUTHORIZED", 401, null);
+      }
+      if (!res.ok) {
+        throw makeHttpError("FETCH_CURRENT_USER_FAILED", res.status, null);
+      }
       const userData = await res.json();
       setUser(userData);
       return { ok: true };

@@ -60,6 +60,82 @@ export async function createFile({ name, parentId = null }) {
   return res.json();
 }
 
+export async function getSharedFiles() {
+  const res = await apiFetch(API_ENDPOINTS.SHARED_FILES);
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "FETCH_SHARED_FILES_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return res.json();
+}
+
+export async function getRecentFiles() {
+  const res = await apiFetch(API_ENDPOINTS.RECENT_FILES);
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "FETCH_RECENT_FILES_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return res.json();
+}
+
+export async function getStarredFiles() {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}?starred=true`);
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "FETCH_STARRED_FILES_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return res.json();
+}
+
+export async function getBinFiles() {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/bin`);
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "FETCH_BIN_FILES_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return res.json();
+}
+
+export async function searchFiles(query) {
+  const q = String(query ?? "").trim();
+  if (!q) return [];
+
+  const res = await apiFetch(
+    `${API_ENDPOINTS.SEARCH}/${encodeURIComponent(q)}`,
+    { method: "GET" }
+  );
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "SEARCH_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return res.json();
+}
+
 async function readErrorMessage(res, fallback) {
   const body = await res.json().catch(() => ({}));
   return {

@@ -1,2 +1,5 @@
-import FilesScreen from "../src/screens/Files/FilesScreen";
-export default FilesScreen;
+import { Redirect } from "expo-router";
+
+export default function FilesAlias() {
+  return <Redirect href="/(tabs)/my-drive" />;
+}

@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/ThemeContext";
 import SideDrawer from "./SideDrawer";
 
 export default function NavMenu({ visible, onClose }) {
@@ -11,8 +11,8 @@ export default function NavMenu({ visible, onClose }) {
   const router = useRouter();
 
   const items = [
-    { label: "Recent", icon: "schedule", path: "/(tabs)/home" },
-    { label: "Bin", icon: "delete", path: "/bin" },
+    { label: "Recent", icon: "schedule", path: "/private/recent" },
+    { label: "Bin", icon: "delete", path: "/private/bin" },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import { View, Pressable, Text } from "react-native";
 import { useContext } from "react";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/ThemeContext";
 
 export default function CreateItemActions({
   type,

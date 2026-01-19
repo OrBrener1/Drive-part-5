@@ -8,7 +8,7 @@ export default function PrivateLayout() {
   if (loading) return null;
 
   if (!isAuthenticated) {
-    return <Redirect href="/login" />;
+    return <Redirect href="/public/login" />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;

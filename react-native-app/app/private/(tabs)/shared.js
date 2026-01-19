@@ -1,2 +1,2 @@
-import SharedScreen from "../../src/screens/Shared/SharedScreen";
+import SharedScreen from "../../../src/screens/Shared/SharedScreen";
 export default SharedScreen;

@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import {
   addPermission,

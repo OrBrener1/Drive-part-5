@@ -1,24 +1,12 @@
 import { useContext } from "react";
 import { Tabs, Redirect } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../src/Theme/ThemeContext";
-import { AuthContext } from "../../src/context/AuthContext";
+import { ThemeContext } from "../../../src/Theme/ThemeContext";
 
 // makes sure that every screen inside tabs is presented with a bottom menu
 export default function TabsLayout() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  
-  //login status
-  const { isAuthenticated, loading } = useContext(AuthContext);
-  
-  if (loading) {
-    return null;
-  }
-  // if user not authenticated 
-  if (!isAuthenticated) {
-      return <Redirect href="/login" />;
-    }
 
   return (
     <Tabs

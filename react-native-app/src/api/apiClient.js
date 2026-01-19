@@ -1,7 +1,6 @@
 // src/api/apiClient.js (React Native)
-
 import { API_ENDPOINTS } from "./apiEndpoints";
-// src/api/apiClient.js
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!BASE_URL) {
@@ -76,7 +75,7 @@ export async function fetchCurrentUser() {
       null
     );
   }
-  
+
   return response.json();
 }
 

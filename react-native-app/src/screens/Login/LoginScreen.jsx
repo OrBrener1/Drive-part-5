@@ -1,6 +1,6 @@
 import React, { useState, useContext, useMemo } from "react";
 import {View, Text, TextInput, Pressable,} from "react-native";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRouter } from "expo-router";
 import AuthCard from "../../components/auth/AuthCard";

@@ -2,19 +2,23 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { View, Text } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 
-import { uploadFile } from "../../api/apiClient";
+import { uploadFile } from "../../api/filesApi";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
 import { useFileActions } from "../../hooks/useFileActions";
 import { useSearchFiles } from "../../hooks/useSearchFiles";
+import { useCreateItem } from "../../hooks/useCreateItem";
 
+
+import CreateMenu from "../../components/create/CreateMenu";
+import CreateFab from "../../components/files/CreateFab";
+import CreateItemModal from "../../components/create/CreateItemModal";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import FileList from "../../components/files/FileList";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
-import CreateOverlay from "../../components/create/CreateOverlay";
 
 export default function FilesScreen() {
   const { theme } = useContext(ThemeContext);
@@ -24,6 +28,8 @@ export default function FilesScreen() {
   const { files, status, loadFiles } = useFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+
 
   useEffect(() => {
     loadFiles().catch((e) => {
@@ -31,26 +37,37 @@ export default function FilesScreen() {
     });
   }, [loadFiles, logout]);
 
+  const create = useCreateItem({
+  onSuccess: loadFiles,
+  onUnauthorized: logout,
+});
+
+const search = useSearchFiles(query);
+const listData = query.trim() ? search.results : files;
+
   async function pickAndUploadFile() {
-  const result = await DocumentPicker.getDocumentAsync({
-    type: ["image/*", "text/*"],
-    copyToCacheDirectory: true,
-  });
+  try {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["image/*", "text/*"],
+      copyToCacheDirectory: true,
+    });
 
-  if (result.canceled) return;
+    if (result.canceled) return;
 
-  const file = result.assets[0];
+    const file = result.assets[0];
 
-  const uploadPayload = {
-    uri: file.uri,
-    name: file.name,
-    type: file.mimeType || "application/octet-stream",
-  };
+    const uploadPayload = {
+      uri: file.uri,
+      name: file.name,
+      type: file.mimeType || "application/octet-stream",
+    };
 
-  await uploadFile(uploadPayload);
-  loadFiles();
+    await uploadFile(uploadPayload);
+    await loadFiles();
+  } catch (e) {
+    console.error("UPLOAD FAILED", e);
+  }
 }
-
   return (
     <View
       style={{
@@ -86,7 +103,7 @@ export default function FilesScreen() {
       )}
 
       {status === "success" && files.length > 0 && (
-        <FileList files={files} />
+        <FileList files={listData} />
       )}
 
       <CreateFab onPress={() => setMenuOpen(true)} />
@@ -114,9 +131,9 @@ export default function FilesScreen() {
         setMenuOpen(false);
         create.startCreate("folder");
       }}
-      onUploadFile={async () => {
+      onUploadFile={() => {
       setMenuOpen(false);
-      await pickAndUploadFile();
+      pickAndUploadFile();
       }}
     />
     </View>

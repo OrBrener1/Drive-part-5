@@ -10,7 +10,6 @@ import TopBar from "../../components/nav/TopBar";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
-import CreateOverlay from "../../components/create/CreateOverlay";
 
 export default function BinScreen() {
   const { theme } = useContext(ThemeContext);
@@ -81,12 +80,6 @@ export default function BinScreen() {
         />
       )}
 
-      <CreateOverlay
-        onCreated={loadFiles}
-        onUnauthorized={(err) => {
-          if (err?.message === "UNAUTHORIZED") logout();
-        }}
-      />
       <PermissionsModal
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}

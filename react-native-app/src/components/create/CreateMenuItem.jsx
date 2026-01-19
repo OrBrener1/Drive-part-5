@@ -1,10 +1,12 @@
 import { Pressable, Text } from "react-native";
 
 export default function CreateMenuItem({ label, onPress, color }) {
+    console.log("MENU ITEM:", label, "typeof onPress =", typeof onPress);
   return (
     <Pressable
       onPress={onPress}
-      style={{ paddingVertical: 12 }}
+      disabled={typeof onPress !== "function"}
+      style={{ paddingVertical: 12, opacity: typeof onPress === "function" ? 1 : 0.5 }}
     >
       <Text style={{ fontSize: 16, color }}>
         {label}

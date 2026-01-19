@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { createItem } from "../api/apiClient";
+import { createItem } from "../api/filesApi";
 
 /**
  * React Native hook for creating files / folders.

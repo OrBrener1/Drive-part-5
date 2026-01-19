@@ -78,62 +78,6 @@ export async function fetchCurrentUser() {
   return response.json();
 }
 
-// Create file / folder
-// Endpoint: POST /files
-export async function createItem({ name, type, parentId, content }) {
-  const response = await apiFetch(API_ENDPOINTS.FILES, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name,
-      type,
-      parentId: parentId ?? null,
-      ...(type !== "folder" ? { content: content ?? "" } : {}),
-    }),
-  });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw makeHttpError(
-      body?.error || "CREATE_ITEM_FAILED",
-      response.status,
-      body
-    );
-  }
-
-  return response.json();
-}
-
-export async function uploadFile(file, parentId = null) {
-  const formData = new FormData();
-  formData.append("file", file);
-  if (parentId) {
-    formData.append("parentId", parentId);
-  }
-
-  const response = await apiFetch(API_ENDPOINTS.UPLOAD_FILE, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (response.status === 401) {
-    throw new Error("UNAUTHORIZED");
-  }
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new Error(body?.error || "UPLOAD_FAILED");
-  }
-
-  return response.json();
-}
-
 
 // You can copy the rest of the endpoints as-is from your web apiClient,
 // only replacing FormData usage accordingly (RN supports FormData too).

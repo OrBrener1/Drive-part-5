@@ -24,6 +24,8 @@ const ROLE_OPTIONS = [
   { value: "ADMIN", label: "Admin" },
 ];
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const ROLE_LABELS = ROLE_OPTIONS.reduce((acc, opt) => {
   acc[opt.value] = opt.label;
   return acc;
@@ -133,6 +135,13 @@ export default function PermissionsModal({ visible, item, onClose }) {
   const itemName = item?.name || "Item";
   const isFolder = item?.type === "folder";
 
+  const normalizedEmail = newEmail.trim().toLowerCase();
+  const emailValid = EMAIL_REGEX.test(normalizedEmail);
+  const hasDuplicate = permissions.some(
+    (p) => String(p.user?.email || "").toLowerCase() === normalizedEmail
+  );
+  const canShare = emailValid && !hasDuplicate && !isSharing;
+
   useEffect(() => {
     if (!visible || !itemId) return;
     let cancelled = false;
@@ -176,11 +185,11 @@ export default function PermissionsModal({ visible, item, onClose }) {
   }, [notice, colors.error, colors.success]);
 
   async function handleShare() {
-    if (!newEmail.trim() || !itemId) return;
+    if (!canShare || !itemId) return;
     setIsSharing(true);
     setNotice(null);
     try {
-      const newPerm = await addPermission(itemId, newEmail.trim(), newRole);
+      const newPerm = await addPermission(itemId, normalizedEmail, newRole);
       setPermissions((prev) => [...prev, newPerm]);
       setNewEmail("");
       setNewRole("READ");
@@ -312,7 +321,11 @@ export default function PermissionsModal({ visible, item, onClose }) {
               keyboardType="email-address"
               style={{
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: !newEmail
+                  ? colors.border
+                  : emailValid && !hasDuplicate
+                    ? colors.success
+                    : colors.error,
                 borderRadius: 10,
                 paddingHorizontal: 12,
                 paddingVertical: 10,
@@ -320,16 +333,34 @@ export default function PermissionsModal({ visible, item, onClose }) {
                 backgroundColor: colors.surface,
               }}
             />
+            {newEmail ? (
+              <Text
+                style={{
+                  color: hasDuplicate
+                    ? colors.error
+                    : emailValid
+                      ? colors.success
+                      : colors.error,
+                  fontSize: 12,
+                }}
+              >
+                {hasDuplicate
+                  ? "This user already has access"
+                  : emailValid
+                    ? "Valid email"
+                    : "Enter a valid email"}
+              </Text>
+            ) : null}
 
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <RoleSelect value={newRole} onChange={setNewRole} />
 
               <Pressable
                 onPress={handleShare}
-                disabled={!newEmail.trim() || isSharing}
+                disabled={!canShare}
                 style={{
                   marginLeft: "auto",
-                  backgroundColor: !newEmail.trim() || isSharing ? colors.primaryDisabled : colors.primary,
+                  backgroundColor: !canShare ? colors.primaryDisabled : colors.primary,
                   paddingVertical: 10,
                   paddingHorizontal: 16,
                   borderRadius: 10,

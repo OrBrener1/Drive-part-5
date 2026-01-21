@@ -1,7 +1,6 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useSharedFiles } from "../../hooks/useSharedFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -11,7 +10,9 @@ import TopBar from "../../components/nav/TopBar";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
-import CreateOverlay from "../../components/create/CreateOverlay";
+import { ThemeContext } from "../../Theme/ThemeContext";
+import CreateFab from "../../components/files/CreateFab";
+import { useCreateUI } from "../../context/CreateUIContext";
 
 export default function SharedScreen() {
   const { theme } = useContext(ThemeContext);
@@ -20,6 +21,7 @@ export default function SharedScreen() {
   const { files, status, loadFiles } = useSharedFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { openMenu } = useCreateUI();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({
@@ -82,18 +84,12 @@ export default function SharedScreen() {
           currentUserId={user?.id}
         />
       )}
-
-      <CreateOverlay
-        onCreated={loadFiles}
-        onUnauthorized={(err) => {
-          if (err?.message === "UNAUTHORIZED") logout();
-        }}
-      />
       <PermissionsModal
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
+      <CreateFab onPress={openMenu} />
     </View>
   );
 }

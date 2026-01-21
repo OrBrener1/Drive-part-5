@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { createItem } from "../api/apiClient";
+import { createItem } from "../api/filesApi";
 
 /**
  * React Native hook for creating files / folders.
@@ -55,7 +55,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
   // --------------------
 
   const canSubmit = useMemo(() => {
-    if (!type) return false;
+    if  (type !== "file" && type !== "folder") return false;
     if (!name.trim()) return false;
     if (nameError) return false;
     return true;
@@ -72,7 +72,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
     setName("");
     setContent("");
 
-    setNameError("Name is required");
+    setNameError("");
     setCreateError("");
   }
 
@@ -96,7 +96,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
         name: name.trim(),
         type,
         parentId,
-        ...(type !== "folder" ? { content } : {}),
+        ...(type === "file" ? { content } : {}),
       });
 
       cancelCreate();
@@ -124,10 +124,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
 }
   }
 
-  // --------------------
   // Public API
-  // --------------------
-
   return {
     // state
     createType: type,

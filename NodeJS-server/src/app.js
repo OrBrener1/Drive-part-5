@@ -55,3 +55,7 @@ app.listen(PORT, "0.0.0.0", () => {
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
+//check for connection
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
+});

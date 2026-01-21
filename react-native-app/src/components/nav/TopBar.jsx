@@ -1,19 +1,11 @@
 import { useContext, useState } from "react";
-import { Image, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
-import UserMenu from "./UserMenu";
+import UserMenu from "../userMenu/UserMenu";
 import NavMenu from "./NavMenu";
-
-function getInitials(name, email) {
-  const base = (name || "").trim() || (email || "").trim();
-  if (!base) return "?";
-  const parts = base.split(/\s+/).filter(Boolean);
-  const first = parts[0]?.[0] || "";
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-  return (first + last).toUpperCase() || "?";
-}
+import Avatar from "../avatar/Avatar";
 
 export default function TopBar({
   query,
@@ -27,8 +19,6 @@ export default function TopBar({
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
 
-  const initials = getInitials(user?.displayName, user?.email);
-
   return (
     <>
       <View
@@ -38,29 +28,16 @@ export default function TopBar({
           paddingVertical: 10,
         }}
       >
+         {/* User Avatar */}
         <Pressable
           onPress={() => setUserMenuOpen(true)}
           hitSlop={8}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: colors.primary,
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 2,
-          }}
+          style={{ zIndex: 2 }}
         >
-          {user?.image ? (
-            <Image
-              source={{ uri: user.image }}
-              style={{ width: 36, height: 36, borderRadius: 18 }}
-            />
-          ) : (
-            <Text style={{ color: "#fff", fontWeight: "600" }}>{initials}</Text>
-          )}
+          <Avatar user={user} size="sm" />
         </Pressable>
-
+        
+        {/* Search */}
         <View
           style={{
             flex: 1,

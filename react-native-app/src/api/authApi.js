@@ -21,7 +21,8 @@ export async function login(email, password) {
   return response.json(); // expected: { token }
 }
 
-export async function register(email, password, displayName) {
+export async function register(email, password, displayName, image) {
+  console.log("REGISTER PAYLOAD IMAGE:", image?.slice(0, 30));
   const response = await apiFetch(API_ENDPOINTS.REGISTER, {
     method: "POST",
     headers: {
@@ -31,6 +32,7 @@ export async function register(email, password, displayName) {
       email,
       password,
       displayName,
+      image // Base64 string (or null)
     }),
   });
 

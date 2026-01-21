@@ -1,2 +1,5 @@
 import FilesScreen from "../../../src/screens/Files/FilesScreen";
-export default FilesScreen;
+
+export default function MyDrive() {
+  return <FilesScreen />;
+}

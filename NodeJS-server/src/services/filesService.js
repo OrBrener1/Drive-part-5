@@ -419,6 +419,25 @@ const getFilesByParent = async (userId, parentId) => {
   return await addStarFlag(sortByCreatedDesc(visible), userId);
 };
 
+const getChildrenForUser = async (userId, parentId) => {
+  const parent = await filesRepository.getFileById(parentId);
+  if (!parent) return 'NOT_FOUND';
+
+  if (!await canUserAccessFile(userId, parent, 'get')) {
+    return 'FORBIDDEN';
+  }
+
+  const children = await filesRepository.getChildren(parentId);
+
+  const visible = [];
+  for (const child of children) {
+    if (!(await binService.isItemOrAncestorInBin(userId, child.id))) {
+      visible.push(child);
+    }
+  }
+
+  return await addStarFlag(visible, userId);
+};
 
 //updates file/folder metadata name by ID
 //Business logic layer: delegates update to repository.
@@ -936,6 +955,7 @@ module.exports = {
   getFileByIdWithContent,
   createFile,
   getFilesByParent, 
+  getChildrenForUser,
   updateFileNameById,
   updateFileContent,
   replaceFileContent,

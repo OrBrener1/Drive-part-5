@@ -72,7 +72,7 @@ const listData = query.trim() ? search.results : files;
       type: file.mimeType || "application/octet-stream",
     };
 
-    await uploadFile(uploadPayload);
+    await uploadFile(uploadPayload, parentId);
     await loadFiles();
   } catch (e) {
     console.error("UPLOAD FAILED", e);
@@ -84,6 +84,7 @@ const listData = query.trim() ? search.results : files;
         flex: 1,
         backgroundColor: colors.background,
         padding: 16,
+        paddingBottom: 96,
       }}
     >
       <TopBar query={query} onChangeQuery={setQuery} />
@@ -112,7 +113,7 @@ const listData = query.trim() ? search.results : files;
         <FilesEmptyState />
       )}
 
-      {status === "success" && files.length > 0 && (
+      {status === "success" && listData.length > 0 && (
         <FileList
           files={listData}
           onItemPress={(item) => {
@@ -141,16 +142,13 @@ const listData = query.trim() ? search.results : files;
       visible={menuOpen}
       onClose={closeMenu}
       onCreateFile={() => {
-        closeMenu();
-        create.startCreate("file");
+        create.startCreate("file", parentId);
       }}
       onCreateFolder={() => {
-        closeMenu();
-        create.startCreate("folder");
+        create.startCreate("folder", parentId);
       }}
       onUploadFile={() => {
-        closeMenu();
-        pickAndUploadFile();
+        pickAndUploadFile(parentId);
       }}
     />
     <CreateFab onPress={openMenu} />

@@ -1,7 +1,6 @@
 import { Pressable, Text } from "react-native";
 
 export default function CreateMenuItem({ label, onPress, color }) {
-    console.log("MENU ITEM:", label, "typeof onPress =", typeof onPress);
   return (
     <Pressable
       onPress={onPress}

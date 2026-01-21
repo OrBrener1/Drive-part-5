@@ -124,10 +124,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
 }
   }
 
-  // --------------------
   // Public API
-  // --------------------
-
   return {
     // state
     createType: type,

@@ -11,9 +11,10 @@ import TopBar from "../../components/nav/TopBar";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
-import CreateOverlay from "../../components/create/CreateOverlay";
 import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
+import { useCreateUI } from "../../context/CreateUIContext";
+import CreateFab from "../../components/files/CreateFab";
 
 export default function StarredScreen() {
   const { theme } = useContext(ThemeContext);
@@ -22,6 +23,7 @@ export default function StarredScreen() {
   const { files, status, error, loadFiles } = useStarredFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { openMenu } = useCreateUI();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({
@@ -93,17 +95,12 @@ export default function StarredScreen() {
         />
       )}
 
-      <CreateOverlay
-        onCreated={loadFiles}
-        onUnauthorized={(err) => {
-          if (err?.message === "UNAUTHORIZED") logout();
-        }}
-      />
       <PermissionsModal
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
+      <CreateFab onPress={openMenu} />
     </View>
   );
 }

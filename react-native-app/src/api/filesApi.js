@@ -1,5 +1,68 @@
-import { apiFetch, makeHttpError } from "./apiClient";
+import { apiFetch } from "./apiClient";
+import { makeHttpError } from "./apiClient";
 import { API_ENDPOINTS } from "./apiEndpoints";
+
+// Create file / folder
+// Endpoint: POST /files
+export async function createItem({ name, type, parentId, content }) {
+  const response = await apiFetch(API_ENDPOINTS.FILES, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name,
+      type,
+      parentId: parentId ?? null,
+      ...(type !== "folder" ? { content: content ?? "" } : {}),
+    }),
+  });
+
+  if (response.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+
+  if (!response.ok) {
+    const err = makeHttpError(
+      body?.error || "CREATE_ITEM_FAILED",
+      response.status,
+      body
+    );
+    throw err;
+  }
+
+  return response.json();
+}
+
+export async function uploadFile(file, parentId = null) {
+  const formData = new FormData();
+
+  formData.append("file", {
+    uri: file.uri,
+    name: file.name,
+    type: file.type || "application/octet-stream",
+  });
+
+  if (parentId) {
+    formData.append("parentId", parentId);
+  }
+
+  const response = await apiFetch(API_ENDPOINTS.UPLOAD_FILE, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (response.status === 401) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body?.error || "UPLOAD_FAILED");
+  }
+
+  return response.json();
+}
 
 export async function getRootFiles() {
   const res = await apiFetch(API_ENDPOINTS.FILES);
@@ -15,53 +78,45 @@ export async function getRootFiles() {
   return res.json();
 }
 
-export async function createFolder({ name, parentId = null }) {
-  const res = await apiFetch(API_ENDPOINTS.FILES, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      type: "folder",
-      name,
-      parentId,
-    }),
-  });
+// Fetch files by parent (root or folder)
+// Endpoint: GET /files?parentId=...
+export async function getFiles(parentId = null) {
+  console.log("📁 FETCH FILES parentId =", parentId);
+  const url = parentId
+    ? `${API_ENDPOINTS.FILES}?parentId=${parentId}`
+    : API_ENDPOINTS.FILES;
+
+  const res = await apiFetch(url);
 
   if (res.status === 401) {
     throw makeHttpError("UNAUTHORIZED", 401, null);
   }
+
   if (!res.ok) {
-    const { message, body } = await readErrorMessage(res, "CREATE_FOLDER_FAILED");
+    const { message, body } = await readErrorMessage(res, "FETCH_FILES_FAILED");
     throw makeHttpError(message, res.status, body);
   }
 
   return res.json();
 }
 
-export async function createFile({ name, parentId = null }) {
-  const res = await apiFetch(API_ENDPOINTS.FILES, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      type: "file",
-      name,
-      parentId,
-    }),
-  });
+// Fetch single file / folder metadata
+// Endpoint: GET /files/:id
+export async function getFileById(fileId) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}`);
 
   if (res.status === 401) {
     throw makeHttpError("UNAUTHORIZED", 401, null);
   }
+
   if (!res.ok) {
-    const { message, body } = await readErrorMessage(res, "CREATE_FILE_FAILED");
+    const { message, body } = await readErrorMessage(res, "FETCH_FILE_FAILED");
     throw makeHttpError(message, res.status, body);
   }
 
   return res.json();
 }
+
 
 export async function getSharedFiles() {
   const res = await apiFetch(API_ENDPOINTS.SHARED_FILES);

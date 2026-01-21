@@ -6,11 +6,7 @@ import { ThemeContext } from "../../Theme/ThemeContext";
 function getAvatarColor(userId, colors) {
   if (!userId) return colors.primary;
   const hash = userId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const palette = [
-    colors.primary,
-    colors.success,
-    colors.pending,
-  ];
+  const palette = [colors.primary, colors.success, colors.pending];
   return palette[hash % palette.length];
 }
 
@@ -22,61 +18,77 @@ function getInitials(name, email) {
 }
 
 export default function Avatar({ user, size = "md" }) {
-  // Access global theme tokens
+  // Access global theme
   const { theme } = useContext(ThemeContext);
-  const { colors, spacing, radius, typography } = theme;
+  const { colors, spacing} = theme;
 
   // Avatar size mapping using spacing tokens
   const sizeMap = {
     sm: spacing.lg,
     md: spacing.xl,
     lg: spacing.xl * 1.5,
-    xl: spacing.xl * 2.5,
+    xl: spacing.xl * 5,
   };
 
   const dimension = sizeMap[size] || sizeMap.md;
 
-  // Memoized background color for consistency
+  // Decorative ring (brand accent, not status indicator)
+    const ringWidth = 3;
+  const ringColor = colors.primary;
+
   const backgroundColor = useMemo(
     () => getAvatarColor(user?.id || user?.email, colors),
     [user, colors]
   );
 
-  // If user has profile image – render it
-  if (user?.image) {
-    return (
-      <Image
-        source={{ uri: user.image }}
-        style={{
-          width: dimension,
-          height: dimension,
-          borderRadius: radius.round,
-        }}
-      />
-    );
-  }
+  // Normalize base64 image to valid data URI
+  const imageUri =
+    user?.image &&
+    (user.image.startsWith("data:image")
+      ? user.image
+      : `data:image/jpeg;base64,${user.image}`);
 
-  // Fallback: initials avatar
   return (
     <View
       style={{
-        width: dimension,
-        height: dimension,
-        borderRadius: radius.round,
-        backgroundColor,
+        width: dimension + ringWidth * 2,
+        height: dimension + ringWidth * 2,
+        borderRadius: (dimension + ringWidth * 2) / 2,
+        borderWidth: ringWidth,
+        borderColor: ringColor,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Text
+      <View
         style={{
-          color: "#fff",
-          fontSize: dimension * 0.4,
-          fontWeight: "600",
+          width: dimension,
+          height: dimension,
+          borderRadius: dimension / 2,
+          overflow: "hidden",
+          backgroundColor,
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {getInitials(user?.displayName, user?.email)}
-      </Text>
+        {imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+          />
+        ) : (
+          <Text
+            style={{
+              color: "#fff",
+              fontSize: dimension * 0.4,
+              fontWeight: "600",
+            }}
+          >
+            {getInitials(user?.displayName, user?.email)}
+          </Text>
+        )}
+      </View>
     </View>
   );
 }

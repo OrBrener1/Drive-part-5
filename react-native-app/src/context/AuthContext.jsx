@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Login flow
   const login = async (email, password) => {
   setLoading(true);
 
@@ -56,16 +57,18 @@ export function AuthProvider({ children }) {
   }
 };
 
+  // Logout: clear all auth state
   const logout = () => {
     setAuthToken(null);
     setUser(null);
     setToken(null);
   };
-
-  const register = async (email, password, displayName) => {
+  
+  // Register
+  const register = async (email, password, displayName, image) => {
 
   try {
-    await authApi.register(email, password, displayName);
+    await authApi.register(email, password, displayName, image);
  
 
     return { ok: true };

@@ -3,6 +3,12 @@ const permissionService = require('../mongoServices/permissionService');
 const filesService = require('../services/filesService');
 const userService = require('../mongoServices/userService');
 
+const PERMISSION_HIERARCHY = {
+  READ: 1,
+  WRITE: 2,
+  ADMIN: 3
+};
+
 // -------------------------
 // ID validation helpers
 // -------------------------
@@ -166,16 +172,31 @@ async function updatePermission(req, res) {
     return res.status(400).json({ error: 'Invalid permission id format' });
   }
 
-  // Security check: requires ADMIN permission
-  const file = await ensureAccess(fileId, req.userId, 'delete', res);
-  if (!file) return;
-
   try {
     const existing = await permissionService.getPermissionOrThrow(pId);
 
     // Validate that the permission actually belongs to this file
     if (existing.fileId !== fileId) {
       return res.status(404).json({ error: 'Permission not found for this file' });
+    }
+
+    const isSelf = String(existing.userId) === String(req.userId);
+
+    if (isSelf) {
+      const file = await ensureAccess(fileId, req.userId, 'get', res);
+      if (!file) return;
+
+      if (req.body && req.body.type) {
+        const currentLevel = PERMISSION_HIERARCHY[existing.type] || 0;
+        const requestedLevel = PERMISSION_HIERARCHY[req.body.type] || 0;
+
+        if (requestedLevel > currentLevel) {
+          return res.status(403).json({ error: 'Cannot increase your own permission' });
+        }
+      }
+    } else {
+      const file = await ensureAccess(fileId, req.userId, 'delete', res);
+      if (!file) return;
     }
 
     const updated = await permissionService.updatePermission(pId, req.body || {});
@@ -200,14 +221,19 @@ async function deletePermission(req, res) {
     return res.status(400).json({ error: 'Invalid permission id' });
   }
 
-  // Security check: requires ADMIN permission
-  const file = await ensureAccess(fileId, req.userId, 'delete', res);
-  if (!file) return;
-
   try {
     const existing = await permissionService.getPermissionOrThrow(pId);
     if (existing.fileId !== fileId) {
       return res.status(404).json({ error: 'Permission not found for this file' });
+    }
+
+    const isSelf = String(existing.userId) === String(req.userId);
+    if (isSelf) {
+      const file = await ensureAccess(fileId, req.userId, 'get', res);
+      if (!file) return;
+    } else {
+      const file = await ensureAccess(fileId, req.userId, 'delete', res);
+      if (!file) return;
     }
 
     await permissionService.deletePermission(pId);

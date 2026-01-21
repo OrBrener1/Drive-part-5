@@ -18,6 +18,7 @@ import {
   updatePermission,
 } from "../../api/filesApi";
 import { getErrorMessage } from "../../utils/errorMessages";
+import LoadingState from "../common/LoadingState";
 
 const ROLE_OPTIONS = [
   { value: "READ", label: "Viewer" },
@@ -403,9 +404,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
             </Text>
 
             {status === "loading" && (
-              <Text style={{ marginTop: 12, color: colors.textSecondary }}>
-                Loading...
-              </Text>
+              <LoadingState label="Loading..." />
             )}
 
             {status === "success" && (

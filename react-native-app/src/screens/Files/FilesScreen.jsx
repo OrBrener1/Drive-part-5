@@ -15,6 +15,7 @@ import FileList from "../../components/files/FileList";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
 import CreateOverlay from "../../components/create/CreateOverlay";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function FilesScreen() {
   const { theme } = useContext(ThemeContext);
@@ -60,15 +61,11 @@ export default function FilesScreen() {
         My Drive
       </Text>
       {status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
-          Loading files...
-        </Text>
+        <LoadingState label="Loading files..." />
       )}
 
       {query.trim() && search.status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
-          Searching...
-        </Text>
+        <LoadingState label="Searching..." />
       )}
 
       {query.trim() && search.status === "error" && (

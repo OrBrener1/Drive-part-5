@@ -13,6 +13,7 @@ import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import CreateOverlay from "../../components/create/CreateOverlay";
 import { getErrorMessage } from "../../utils/errorMessages";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function HomeScreen() {
   const { theme } = useContext(ThemeContext);
@@ -52,15 +53,11 @@ export default function HomeScreen() {
       </Text>
 
       {status === "loading" && (
-        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
-          Loading files...
-        </Text>
+        <LoadingState label="Loading files..." />
       )}
 
       {query.trim() && search.status === "loading" && (
-        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
-          Searching...
-        </Text>
+        <LoadingState label="Searching..." />
       )}
 
       {query.trim() && search.status === "error" && (

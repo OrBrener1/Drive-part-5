@@ -3,19 +3,20 @@
 import { Stack } from "expo-router";
 import { AuthProvider } from "../src/context/AuthContext";
 import { ThemeProvider } from "../src/Theme/ThemeContext";
-
+import { CreateUIProvider } from "../src/context/CreateUIContext";
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
-        />
+        <CreateUIProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+            }}
+          />
+        </CreateUIProvider>
       </AuthProvider>
     </ThemeProvider>
   );
 }
-    

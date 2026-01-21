@@ -11,8 +11,8 @@ export default function NavMenu({ visible, onClose }) {
   const router = useRouter();
 
   const items = [
-    { label: "Recent", icon: "schedule", path: "/(tabs)/home" },
-    { label: "Bin", icon: "delete", path: "/bin" },
+    { label: "Recent", icon: "schedule", path: "/private/recent" },
+    { label: "Bin", icon: "delete", path: "/private/bin" },
   ];
 
   return (

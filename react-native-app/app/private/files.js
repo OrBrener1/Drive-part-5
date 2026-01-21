@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
 
 export default function FilesAlias() {
-  return <Redirect href="/(tabs)/my-drive" />;
+  return <Redirect href="/private/(tabs)/my-drive" />;
 }

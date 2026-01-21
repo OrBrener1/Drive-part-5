@@ -23,12 +23,12 @@ export async function createItem({ name, type, parentId, content }) {
   }
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw makeHttpError(
+    const err = makeHttpError(
       body?.error || "CREATE_ITEM_FAILED",
       response.status,
       body
     );
+    throw err;
   }
 
   return response.json();
@@ -77,51 +77,7 @@ export async function getRootFiles() {
   return res.json();
 }
 
-export async function createFolder({ name, parentId = null }) {
-  const res = await apiFetch(API_ENDPOINTS.FILES, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      type: "folder",
-      name,
-      parentId,
-    }),
-  });
 
-  if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
-  }
-  if (!res.ok) {
-    throw new Error("CREATE_FOLDER_FAILED");
-  }
-
-  return res.json();
-}
-
-export async function createFile({ name, parentId = null }) {
-  const res = await apiFetch(API_ENDPOINTS.FILES, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      type: "file",
-      name,
-      parentId,
-    }),
-  });
-
-  if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
-  }
-  if (!res.ok) {
-    throw new Error("CREATE_FILE_FAILED");
-  }
-
-  return res.json();
-}
 
 export async function getSharedFiles() {
   const res = await apiFetch(API_ENDPOINTS.SHARED_FILES);

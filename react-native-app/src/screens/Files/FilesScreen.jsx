@@ -1,16 +1,18 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import * as DocumentPicker from "expo-document-picker";
 
-import { uploadFile } from "../../api/filesApi";
 import { ThemeContext } from "../../Theme/ThemeContext";
+import { uploadFile } from "../../api/filesApi";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
+import { useCreateUI } from "../../context/CreateUIContext";
+
 import { useFileActions } from "../../hooks/useFileActions";
 import { useSearchFiles } from "../../hooks/useSearchFiles";
 import { useCreateItem } from "../../hooks/useCreateItem";
-
 
 import CreateMenu from "../../components/create/CreateMenu";
 import CreateFab from "../../components/files/CreateFab";
@@ -28,14 +30,16 @@ export default function FilesScreen() {
   const { files, status, loadFiles } = useFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { menuOpen, openMenu, closeMenu } = useCreateUI();
 
 
-  useEffect(() => {
-    loadFiles().catch((e) => {
-      if (e?.message === "UNAUTHORIZED") logout();
-    });
-  }, [loadFiles, logout]);
+  useFocusEffect(
+    useCallback(() => {
+      loadFiles().catch((e) => {
+        if (e?.message === "UNAUTHORIZED") logout();
+      });
+    }, [loadFiles, logout])
+  );
 
   const create = useCreateItem({
   onSuccess: loadFiles,
@@ -105,8 +109,6 @@ const listData = query.trim() ? search.results : files;
       {status === "success" && files.length > 0 && (
         <FileList files={listData} />
       )}
-
-      <CreateFab onPress={() => setMenuOpen(true)} />
       <CreateItemModal
         visible={Boolean(create.createType)}
         type={create.createType}
@@ -120,22 +122,23 @@ const listData = query.trim() ? search.results : files;
         onSubmit={create.submit}
         onCancel={create.cancelCreate}
       />
-      <CreateMenu
+     <CreateMenu
       visible={menuOpen}
-      onClose={() => setMenuOpen(false)}
+      onClose={closeMenu}
       onCreateFile={() => {
-        setMenuOpen(false);
+        closeMenu();
         create.startCreate("file");
       }}
       onCreateFolder={() => {
-        setMenuOpen(false);
+        closeMenu();
         create.startCreate("folder");
       }}
       onUploadFile={() => {
-      setMenuOpen(false);
-      pickAndUploadFile();
+        closeMenu();
+        pickAndUploadFile();
       }}
     />
+    <CreateFab onPress={openMenu} />
     </View>
   );
 }

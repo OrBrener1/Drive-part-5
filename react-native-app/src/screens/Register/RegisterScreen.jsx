@@ -131,7 +131,7 @@ export default function RegisterScreen() {
         return;
       }
 
-      router.replace("/login");
+      router.replace("/public/login");
     } catch {
       setError("Network error");
     } finally {
@@ -148,7 +148,7 @@ export default function RegisterScreen() {
           Already have an account?{" "}
           <Text
             style={styles.footerLink}
-            onPress={() => router.replace("/login")}
+            onPress={() => router.replace("/public/login")}
           >
             Sign in
           </Text>

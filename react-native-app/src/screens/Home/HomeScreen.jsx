@@ -1,5 +1,6 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
@@ -10,12 +11,15 @@ import TopBar from "../../components/nav/TopBar";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
+import { useCreateUI } from "../../context/CreateUIContext";
+import CreateFab from "../../components/files/CreateFab";
 
 export default function HomeScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { logout, user } = useContext(AuthContext);
   const { files, status, loadFiles } = useRecentFiles();
+  const { openMenu } = useCreateUI();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
@@ -25,11 +29,13 @@ export default function HomeScreen() {
       onUnauthorized: () => logout(),
     });
 
-  useEffect(() => {
-    loadFiles().catch((e) => {
-      if (e?.message === "UNAUTHORIZED") logout();
-    });
-  }, [loadFiles, logout]);
+  useFocusEffect(
+    useCallback(() => {
+      loadFiles().catch((e) => {
+        if (e?.message === "UNAUTHORIZED") logout();
+      });
+    }, [loadFiles, logout])
+  );
 
   const search = useSearchFiles(query);
   const listData = useMemo(() => {
@@ -83,6 +89,7 @@ export default function HomeScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
+      <CreateFab onPress={openMenu} />
     </View>
   );
 }

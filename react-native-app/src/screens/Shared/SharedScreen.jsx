@@ -1,6 +1,6 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { useFocusEffect } from "@react-navigation/native";
 import { AuthContext } from "../../context/AuthContext";
 import { useSharedFiles } from "../../hooks/useSharedFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -10,6 +10,9 @@ import TopBar from "../../components/nav/TopBar";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
+import { ThemeContext } from "../../Theme/ThemeContext";
+import CreateFab from "../../components/files/CreateFab";
+import { useCreateUI } from "../../context/CreateUIContext";
 
 export default function SharedScreen() {
   const { theme } = useContext(ThemeContext);
@@ -18,6 +21,7 @@ export default function SharedScreen() {
   const { files, status, loadFiles } = useSharedFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { openMenu } = useCreateUI();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({
@@ -25,11 +29,13 @@ export default function SharedScreen() {
       onUnauthorized: () => logout(),
     });
 
-  useEffect(() => {
-    loadFiles().catch((e) => {
-      if (e?.message === "UNAUTHORIZED") logout();
-    });
-  }, [loadFiles, logout]);
+  useFocusEffect(
+    useCallback(() => {
+      loadFiles().catch((e) => {
+        if (e?.message === "UNAUTHORIZED") logout();
+      });
+    }, [loadFiles, logout])
+  );
 
   const search = useSearchFiles(query);
   const listData = useMemo(() => {
@@ -83,6 +89,7 @@ export default function SharedScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
+      <CreateFab onPress={openMenu} />
     </View>
   );
 }

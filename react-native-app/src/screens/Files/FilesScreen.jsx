@@ -1,5 +1,6 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
+import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import * as DocumentPicker from "expo-document-picker";
 
@@ -31,6 +32,7 @@ export default function FilesScreen() {
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { menuOpen, openMenu, closeMenu } = useCreateUI();
+  const router = useRouter();
 
 
   useFocusEffect(
@@ -41,8 +43,11 @@ export default function FilesScreen() {
     }, [loadFiles, logout])
   );
 
-  const create = useCreateItem({
-  onSuccess: loadFiles,
+ const create = useCreateItem({
+  onSuccess: async () => {
+    await loadFiles();
+    router.replace("/private/(tabs)/my-drive");
+  },
   onUnauthorized: logout,
 });
 
@@ -107,7 +112,16 @@ const listData = query.trim() ? search.results : files;
       )}
 
       {status === "success" && files.length > 0 && (
-        <FileList files={listData} />
+        <FileList
+          files={listData}
+          onItemPress={(item) => {
+            if (item.type === "folder") {
+              router.push(`/private/folder/${item.id}`);
+            } else {
+              router.push(`/private/file/${item.id}`);
+            }
+          }}
+        />
       )}
       <CreateItemModal
         visible={Boolean(create.createType)}

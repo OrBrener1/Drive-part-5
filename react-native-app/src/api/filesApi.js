@@ -68,10 +68,11 @@ export async function getRootFiles() {
   const res = await apiFetch(API_ENDPOINTS.FILES);
 
   if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
+    throw makeHttpError("UNAUTHORIZED", 401, null);
   }
   if (!res.ok) {
-    throw new Error("FETCH_FILES_FAILED");
+    const { message, body } = await readErrorMessage(res, "FETCH_FILES_FAILED");
+    throw makeHttpError(message, res.status, body);
   }
 
   return res.json();
@@ -92,12 +93,8 @@ export async function getFiles(parentId = null) {
   }
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw makeHttpError(
-      body?.error || "FETCH_FILES_FAILED",
-      res.status,
-      body
-    );
+    const { message, body } = await readErrorMessage(res, "FETCH_FILES_FAILED");
+    throw makeHttpError(message, res.status, body);
   }
 
   return res.json();
@@ -113,12 +110,8 @@ export async function getFileById(fileId) {
   }
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw makeHttpError(
-      body?.error || "FETCH_FILE_FAILED",
-      res.status,
-      body
-    );
+    const { message, body } = await readErrorMessage(res, "FETCH_FILE_FAILED");
+    throw makeHttpError(message, res.status, body);
   }
 
   return res.json();

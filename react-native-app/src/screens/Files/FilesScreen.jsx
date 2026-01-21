@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
@@ -14,6 +14,7 @@ import { useCreateUI } from "../../context/CreateUIContext";
 import { useFileActions } from "../../hooks/useFileActions";
 import { useSearchFiles } from "../../hooks/useSearchFiles";
 import { useCreateItem } from "../../hooks/useCreateItem";
+import { getErrorMessage } from "../../utils/errorMessages";
 
 import CreateMenu from "../../components/create/CreateMenu";
 import CreateFab from "../../components/files/CreateFab";
@@ -22,18 +23,24 @@ import FilesEmptyState from "../../components/files/FilesEmptyState";
 import FileList from "../../components/files/FileList";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
+import LoadingState from "../../components/common/LoadingState";
 
 export default function FilesScreen({ parentId = null }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
   const { logout, user } = useContext(AuthContext);
-  const { files, status, loadFiles } = useFiles(parentId);
+  const { files, status, error, loadFiles } = useFiles(parentId);
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { menuOpen, openMenu, closeMenu } = useCreateUI();
   const router = useRouter();
 
+  const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
+    useFileActions({
+      loadFiles,
+      onUnauthorized: () => logout(),
+    });
 
   useFocusEffect(
     useCallback(() => {
@@ -43,41 +50,39 @@ export default function FilesScreen({ parentId = null }) {
     }, [loadFiles, logout])
   );
 
- const create = useCreateItem({
-  parentId,
-  onSuccess: async () => {
-    await loadFiles();
-  },
-  onUnauthorized: logout,
-});
+  const create = useCreateItem({
+    onSuccess: async () => {
+      await loadFiles();
+    },
+    onUnauthorized: logout,
+  });
 
-
-const search = useSearchFiles(query);
-const listData = query.trim() ? search.results : files;
+  const search = useSearchFiles(query);
+  const listData = query.trim() ? search.results : files;
 
   async function pickAndUploadFile() {
-  try {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ["image/*", "text/*"],
-      copyToCacheDirectory: true,
-    });
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*", "text/*"],
+        copyToCacheDirectory: true,
+      });
 
-    if (result.canceled) return;
+      if (result.canceled) return;
 
-    const file = result.assets[0];
+      const file = result.assets[0];
 
-    const uploadPayload = {
-      uri: file.uri,
-      name: file.name,
-      type: file.mimeType || "application/octet-stream",
-    };
+      const uploadPayload = {
+        uri: file.uri,
+        name: file.name,
+        type: file.mimeType || "application/octet-stream",
+      };
 
-    await uploadFile(uploadPayload, parentId);
-    await loadFiles();
-  } catch (e) {
-    console.error("UPLOAD FAILED", e);
+      await uploadFile(uploadPayload, parentId);
+      await loadFiles();
+    } catch (e) {
+      console.error("UPLOAD FAILED", e);
+    }
   }
-}
   return (
     <View
       style={{
@@ -92,24 +97,32 @@ const listData = query.trim() ? search.results : files;
       {parentId ? "Folder" : "My Drive"}
       </Text>
       {status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
-          Loading files...
-        </Text>
+        <LoadingState label="Loading files..." />
       )}
 
       {query.trim() && search.status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
-          Searching...
-        </Text>
+        <LoadingState label="Searching..." />
       )}
 
       {query.trim() && search.status === "error" && (
         <Text style={{ color: colors.textSecondary }}>
-          Search failed. Try again.
+          {getErrorMessage(search.error, { fallback: "Search failed. Try again." })}
         </Text>
       )}
 
-      {status === "success" && listData.length === 0 && (
+      {status === "error" && (
+        <Text style={{ color: colors.textSecondary }}>
+          {getErrorMessage(error, { fallback: "Failed to load files." })}
+        </Text>
+      )}
+
+      {query.trim() && search.status === "success" && listData.length === 0 && (
+        <Text style={{ color: colors.textSecondary }}>
+          No matching results.
+        </Text>
+      )}
+
+      {!query.trim() && status === "success" && listData.length === 0 && (
         <FilesEmptyState />
       )}
 
@@ -123,8 +136,18 @@ const listData = query.trim() ? search.results : files;
               router.push(`/private/file/${item.id}`);
             }
           }}
+          onOpenPermissions={permissionsUI.openPermissions}
+          onToggleStar={handleToggleStar}
+          onMoveToBin={handleMoveToBin}
+          onRestoreFromBin={handleRestoreFromBin}
+          currentUserId={user?.id}
         />
       )}
+      <PermissionsModal
+        visible={permissionsUI.isPermOpen}
+        item={permissionsUI.permItem}
+        onClose={permissionsUI.closePermissions}
+      />
       <CreateItemModal
         visible={Boolean(create.createType)}
         type={create.createType}
@@ -148,7 +171,7 @@ const listData = query.trim() ? search.results : files;
         create.startCreate("folder", parentId);
       }}
       onUploadFile={() => {
-        pickAndUploadFile(parentId);
+        pickAndUploadFile();
       }}
     />
     <CreateFab onPress={openMenu} />

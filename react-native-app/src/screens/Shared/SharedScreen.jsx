@@ -10,6 +10,8 @@ import TopBar from "../../components/nav/TopBar";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
+import { getErrorMessage } from "../../utils/errorMessages";
+import LoadingState from "../../components/common/LoadingState";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import CreateFab from "../../components/files/CreateFab";
 import { useCreateUI } from "../../context/CreateUIContext";
@@ -18,7 +20,7 @@ export default function SharedScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { logout, user } = useContext(AuthContext);
-  const { files, status, loadFiles } = useSharedFiles();
+  const { files, status, error, loadFiles } = useSharedFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { openMenu } = useCreateUI();
@@ -53,24 +55,32 @@ export default function SharedScreen() {
       </Text>
 
       {status === "loading" && (
-        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
-          Loading files...
-        </Text>
+        <LoadingState label="Loading files..." />
       )}
 
       {query.trim() && search.status === "loading" && (
-        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
-          Searching...
-        </Text>
+        <LoadingState label="Searching..." />
       )}
 
       {query.trim() && search.status === "error" && (
         <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
-          Search failed. Try again.
+          {getErrorMessage(search.error, { fallback: "Search failed. Try again." })}
         </Text>
       )}
 
-      {status === "success" && listData.length === 0 && (
+      {status === "error" && (
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
+          {getErrorMessage(error, { fallback: "Failed to load shared files." })}
+        </Text>
+      )}
+
+      {query.trim() && search.status === "success" && listData.length === 0 && (
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
+          No matching results.
+        </Text>
+      )}
+
+      {!query.trim() && status === "success" && listData.length === 0 && (
         <FilesEmptyState />
       )}
 

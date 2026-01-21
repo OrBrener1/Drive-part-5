@@ -4,6 +4,7 @@ import React, { createContext, useState, useEffect, useMemo } from "react";
 import * as authApi from "../api/authApi";
 import { apiFetch, makeHttpError, setToken } from "../api/apiClient";
 import { API_ENDPOINTS } from "../api/apiEndpoints";
+import { getErrorMessage } from "../utils/errorMessages";
 
 export const AuthContext = createContext(null);
 
@@ -50,7 +51,10 @@ export function AuthProvider({ children }) {
   } catch (err) {
     return {
       ok: false,
-      message: err.message || "Login failed",
+      message: getErrorMessage(err, {
+        context: "auth",
+        fallback: "Login failed",
+      }),
     };
   } finally {
     setLoading(false);
@@ -75,7 +79,10 @@ export function AuthProvider({ children }) {
   } catch (err) {
     return {
       ok: false,
-      message: err.message,
+      message: getErrorMessage(err, {
+        context: "auth",
+        fallback: "Registration failed",
+      }),
     };
   }
 };

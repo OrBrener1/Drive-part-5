@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { Alert } from "react-native";
 import { moveFileToBin, restoreFileFromBin, toggleStar } from "../api/filesApi";
+import { getErrorMessage } from "../utils/errorMessages";
 
 export function useFileActions({ loadFiles, onUnauthorized } = {}) {
   const handleToggleStar = useCallback(
@@ -9,7 +10,14 @@ export function useFileActions({ loadFiles, onUnauthorized } = {}) {
         await toggleStar(item.id);
         await loadFiles?.();
       } catch (e) {
-        if (e?.message === "UNAUTHORIZED") onUnauthorized?.(e);
+        if (e?.message === "UNAUTHORIZED" || e?.status === 401) {
+          onUnauthorized?.(e);
+          return;
+        }
+        Alert.alert(
+          "Failed to update star",
+          getErrorMessage(e, { fallback: "Please try again." })
+        );
       }
     },
     [loadFiles, onUnauthorized]
@@ -21,8 +29,14 @@ export function useFileActions({ loadFiles, onUnauthorized } = {}) {
         await moveFileToBin(item.id);
         await loadFiles?.();
       } catch (e) {
-        if (e?.message === "UNAUTHORIZED") onUnauthorized?.(e);
-        Alert.alert("Failed to move to bin", e?.message || "Please try again.");
+        if (e?.message === "UNAUTHORIZED" || e?.status === 401) {
+          onUnauthorized?.(e);
+          return;
+        }
+        Alert.alert(
+          "Failed to move to bin",
+          getErrorMessage(e, { fallback: "Please try again." })
+        );
       }
     },
     [loadFiles, onUnauthorized]
@@ -34,8 +48,14 @@ export function useFileActions({ loadFiles, onUnauthorized } = {}) {
         await restoreFileFromBin(item.id);
         await loadFiles?.();
       } catch (e) {
-        if (e?.message === "UNAUTHORIZED") onUnauthorized?.(e);
-        Alert.alert("Failed to restore", e?.message || "Please try again.");
+        if (e?.message === "UNAUTHORIZED" || e?.status === 401) {
+          onUnauthorized?.(e);
+          return;
+        }
+        Alert.alert(
+          "Failed to restore",
+          getErrorMessage(e, { fallback: "Please try again." })
+        );
       }
     },
     [loadFiles, onUnauthorized]

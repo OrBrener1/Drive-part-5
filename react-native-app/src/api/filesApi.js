@@ -77,6 +77,32 @@ export async function getRootFiles() {
   return res.json();
 }
 
+// Fetch files by parent (root or folder)
+// Endpoint: GET /files?parentId=...
+export async function getFiles(parentId = null) {
+  console.log("📁 FETCH FILES parentId =", parentId);
+  const url = parentId
+    ? `${API_ENDPOINTS.FILES}?parentId=${parentId}`
+    : API_ENDPOINTS.FILES;
+
+  const res = await apiFetch(url);
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw makeHttpError(
+      body?.error || "FETCH_FILES_FAILED",
+      res.status,
+      body
+    );
+  }
+
+  return res.json();
+}
+
 // Fetch single file / folder metadata
 // Endpoint: GET /files/:id
 export async function getFileById(fileId) {

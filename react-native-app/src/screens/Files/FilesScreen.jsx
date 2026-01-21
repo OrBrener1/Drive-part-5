@@ -23,12 +23,12 @@ import FileList from "../../components/files/FileList";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
 
-export default function FilesScreen() {
+export default function FilesScreen({ parentId = null }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
   const { logout, user } = useContext(AuthContext);
-  const { files, status, loadFiles } = useFiles();
+  const { files, status, loadFiles } = useFiles(parentId);
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { menuOpen, openMenu, closeMenu } = useCreateUI();
@@ -44,12 +44,13 @@ export default function FilesScreen() {
   );
 
  const create = useCreateItem({
+  parentId,
   onSuccess: async () => {
     await loadFiles();
-    router.replace("/private/(tabs)/my-drive");
   },
   onUnauthorized: logout,
 });
+
 
 const search = useSearchFiles(query);
 const listData = query.trim() ? search.results : files;
@@ -87,7 +88,7 @@ const listData = query.trim() ? search.results : files;
     >
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
-        My Drive
+      {parentId ? "Folder" : "My Drive"}
       </Text>
       {status === "loading" && (
         <Text style={{ color: colors.textSecondary }}>

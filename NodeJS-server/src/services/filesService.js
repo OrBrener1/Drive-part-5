@@ -400,6 +400,25 @@ const createFile = async (userId, name, type, parentId = null, content = '') => 
   return { status: 'OK', file: item };
 };
 
+// filesService.js
+const getFilesByParent = async (userId, parentId) => {
+  const parent = await filesRepository.getFileById(parentId);
+  if (!parent) return 'PARENT_NOT_FOUND';
+  if (parent.type !== 'folder') return 'INVALID_PARENT';
+  if (!(await canUserAccessFile(userId, parent, 'get'))) return 'NO_PERMISSION';
+
+  const children = await filesRepository.getChildren(parentId);
+
+  const visible = [];
+  for (const item of children) {
+    if (!(await binService.isItemOrAncestorInBin(userId, item.id))) {
+      visible.push(item);
+    }
+  }
+
+  return await addStarFlag(sortByCreatedDesc(visible), userId);
+};
+
 
 //updates file/folder metadata name by ID
 //Business logic layer: delegates update to repository.
@@ -916,6 +935,7 @@ module.exports = {
   getFileById,
   getFileByIdWithContent,
   createFile,
+  getFilesByParent, 
   updateFileNameById,
   updateFileContent,
   replaceFileContent,

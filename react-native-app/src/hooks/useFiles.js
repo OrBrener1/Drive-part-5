@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import { getRootFiles } from "../api/filesApi";
+import { getFiles } from "../api/filesApi";
 
-export function useFiles() {
+export function useFiles(parentId = null) {
   const [files, setFiles] = useState([]);
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [error, setError] = useState(null);
@@ -11,7 +11,7 @@ export function useFiles() {
     setError(null);
 
     try {
-      const data = await getRootFiles();
+      const data = await getFiles(parentId);
       setFiles(Array.isArray(data) ? data : []);
       setStatus("success");
     } catch (e) {
@@ -19,7 +19,7 @@ export function useFiles() {
       setError(e);
       throw e;
     }
-  }, []);
+  }, [parentId]);
 
   return { files, status, error, loadFiles };
 }

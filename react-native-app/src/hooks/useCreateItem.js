@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { createItem } from "../api/apiClient";
+import { getErrorMessage } from "../utils/errorMessages";
 
 /**
  * React Native hook for creating files / folders.
@@ -102,26 +103,15 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
       cancelCreate();
       onSuccess?.();
     } catch (err) {
-  if (onUnauthorized?.(err)) return;
+      if (err?.message === "UNAUTHORIZED" || err?.status === 401) {
+        onUnauthorized?.(err);
+        return;
+      }
 
-  // CPP server down
-  if (
-    err?.message === "CPP_ERROR" ||
-    err?.message === "File server unavailable" ||
-    err?.status === 503
-  ) {
-    setCreateError("File server is unavailable. Please try again later.");
-    return;
-  }
-
-  // Validation / permission / generic backend error
-  if (err?.message) {
-    setCreateError(err.message);
-    return;
-  }
-
-  setCreateError("Failed to create item.");
-}
+      setCreateError(
+        getErrorMessage(err, { fallback: "Failed to create item." })
+      );
+    }
   }
 
   // --------------------

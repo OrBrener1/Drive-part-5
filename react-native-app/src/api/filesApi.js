@@ -5,10 +5,11 @@ export async function getRootFiles() {
   const res = await apiFetch(API_ENDPOINTS.FILES);
 
   if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
+    throw makeHttpError("UNAUTHORIZED", 401, null);
   }
   if (!res.ok) {
-    throw new Error("FETCH_FILES_FAILED");
+    const { message, body } = await readErrorMessage(res, "FETCH_FILES_FAILED");
+    throw makeHttpError(message, res.status, body);
   }
 
   return res.json();
@@ -28,10 +29,11 @@ export async function createFolder({ name, parentId = null }) {
   });
 
   if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
+    throw makeHttpError("UNAUTHORIZED", 401, null);
   }
   if (!res.ok) {
-    throw new Error("CREATE_FOLDER_FAILED");
+    const { message, body } = await readErrorMessage(res, "CREATE_FOLDER_FAILED");
+    throw makeHttpError(message, res.status, body);
   }
 
   return res.json();
@@ -51,10 +53,11 @@ export async function createFile({ name, parentId = null }) {
   });
 
   if (res.status === 401) {
-    throw new Error("UNAUTHORIZED");
+    throw makeHttpError("UNAUTHORIZED", 401, null);
   }
   if (!res.ok) {
-    throw new Error("CREATE_FILE_FAILED");
+    const { message, body } = await readErrorMessage(res, "CREATE_FILE_FAILED");
+    throw makeHttpError(message, res.status, body);
   }
 
   return res.json();

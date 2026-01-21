@@ -26,6 +26,10 @@ function makeHttpError(message, status, body) {
   return err;
 }
 
+async function readErrorBody(response) {
+  return response.json().catch(() => null);
+}
+
 export async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   const timeoutMs = options.timeoutMs ?? 15000;
@@ -69,10 +73,11 @@ export async function fetchCurrentUser() {
 
   // Other server errors
   if (!response.ok) {
+    const body = await readErrorBody(response);
     throw makeHttpError(
-      "FETCH_CURRENT_USER_FAILED",
+      body?.error || "FETCH_CURRENT_USER_FAILED",
       response.status,
-      null
+      body
     );
   }
 

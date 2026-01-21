@@ -8,6 +8,7 @@ import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
 import { useFileActions } from "../../hooks/useFileActions";
 import { useSearchFiles } from "../../hooks/useSearchFiles";
+import { getErrorMessage } from "../../utils/errorMessages";
 
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import FileList from "../../components/files/FileList";
@@ -20,7 +21,7 @@ export default function FilesScreen() {
   const { colors } = theme;
 
   const { logout, user } = useContext(AuthContext);
-  const { files, status, loadFiles } = useFiles();
+  const { files, status, error, loadFiles } = useFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
@@ -72,11 +73,23 @@ export default function FilesScreen() {
 
       {query.trim() && search.status === "error" && (
         <Text style={{ color: colors.textSecondary }}>
-          Search failed. Try again.
+          {getErrorMessage(search.error, { fallback: "Search failed. Try again." })}
         </Text>
       )}
 
-      {status === "success" && listData.length === 0 && (
+      {status === "error" && (
+        <Text style={{ color: colors.textSecondary }}>
+          {getErrorMessage(error, { fallback: "Failed to load files." })}
+        </Text>
+      )}
+
+      {query.trim() && search.status === "success" && listData.length === 0 && (
+        <Text style={{ color: colors.textSecondary }}>
+          No matching results.
+        </Text>
+      )}
+
+      {!query.trim() && status === "success" && listData.length === 0 && (
         <FilesEmptyState />
       )}
 

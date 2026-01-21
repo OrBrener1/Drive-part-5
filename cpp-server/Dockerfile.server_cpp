@@ -24,5 +24,8 @@ WORKDIR /app/build
 # Build only the server executable
 RUN cmake /app && make drive-server
 
+# Expose server port
+EXPOSE 8080
+
 # Default command
-CMD ["./drive-server"]
+CMD ["./drive-server", "8080"]

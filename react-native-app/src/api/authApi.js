@@ -13,12 +13,9 @@ export async function login(email, password) {
   });
 
   if (!response.ok) {
-    let message = "Login failed";
-    try {
-      const data = await response.json();
-      message = data.message || data.error || message;
-    } catch {}
-    throw makeHttpError(message, response.status, null);
+    const data = await response.json().catch(() => ({}));
+    const message = data.message || data.error || "Login failed";
+    throw makeHttpError(message, response.status, data);
   }
 
   return response.json(); // expected: { token }
@@ -38,12 +35,9 @@ export async function register(email, password, displayName) {
   });
 
   if (!response.ok) {
-    let message = "Registration failed";
-    try {
-      const data = await response.json();
-      message = data.message || data.error || message;
-    } catch {}
-    throw makeHttpError(message, response.status, null);
+    const data = await response.json().catch(() => ({}));
+    const message = data.message || data.error || "Registration failed";
+    throw makeHttpError(message, response.status, data);
   }
 
   return response.json();

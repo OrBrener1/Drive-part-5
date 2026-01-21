@@ -17,6 +17,7 @@ import {
   removePermission,
   updatePermission,
 } from "../../api/filesApi";
+import { getErrorMessage } from "../../utils/errorMessages";
 
 const ROLE_OPTIONS = [
   { value: "READ", label: "Viewer" },
@@ -163,7 +164,9 @@ export default function PermissionsModal({ visible, item, onClose }) {
         setStatus("error");
         setNotice({
           type: "error",
-          message: err?.message || "Failed to load permissions",
+          message: getErrorMessage(err, {
+            fallback: "Failed to load permissions",
+          }),
         });
       }
     }
@@ -198,7 +201,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
     } catch (err) {
       setNotice({
         type: "error",
-        message: err?.message || "Failed to share",
+        message: getErrorMessage(err, { fallback: "Failed to share" }),
       });
     } finally {
       setIsSharing(false);
@@ -220,7 +223,9 @@ export default function PermissionsModal({ visible, item, onClose }) {
     } catch (err) {
       setNotice({
         type: "error",
-        message: err?.message || "Failed to update permission",
+        message: getErrorMessage(err, {
+          fallback: "Failed to update permission",
+        }),
       });
       try {
         const res = await getPermissions(itemId);
@@ -251,7 +256,9 @@ export default function PermissionsModal({ visible, item, onClose }) {
             } catch (err) {
               setNotice({
                 type: "error",
-                message: err?.message || "Failed to remove access",
+                message: getErrorMessage(err, {
+                  fallback: "Failed to remove access",
+                }),
               });
             }
           },

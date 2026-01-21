@@ -12,12 +12,13 @@ import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import CreateOverlay from "../../components/create/CreateOverlay";
+import { getErrorMessage } from "../../utils/errorMessages";
 
 export default function StarredScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { logout, user } = useContext(AuthContext);
-  const { files, status, loadFiles } = useStarredFiles();
+  const { files, status, error, loadFiles } = useStarredFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
@@ -64,11 +65,23 @@ export default function StarredScreen() {
 
       {query.trim() && search.status === "error" && (
         <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
-          Search failed. Try again.
+          {getErrorMessage(search.error, { fallback: "Search failed. Try again." })}
         </Text>
       )}
 
-      {status === "success" && listData.length === 0 && (
+      {status === "error" && (
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
+          {getErrorMessage(error, { fallback: "Failed to load starred files." })}
+        </Text>
+      )}
+
+      {query.trim() && search.status === "success" && listData.length === 0 && (
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
+          No matching results.
+        </Text>
+      )}
+
+      {!query.trim() && status === "success" && listData.length === 0 && (
         <FilesEmptyState />
       )}
 

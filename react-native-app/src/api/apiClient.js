@@ -1,7 +1,11 @@
 // src/api/apiClient.js (React Native)
 import { API_ENDPOINTS } from "./apiEndpoints";
 
-const BASE_URL = "http://172.20.10.2:5000/api";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!BASE_URL) {
+  throw new Error("EXPO_PUBLIC_API_URL is not defined");
+}
 
 // We chose to not use AsyncStorage to keep the tokens, 
 // so the user has to log in again after closing the app. 
@@ -24,18 +28,32 @@ function makeHttpError(message, status, body) {
 
 export async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers || {}) };
+  const timeoutMs = options.timeoutMs ?? 15000;
 
   const token = getToken();
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  return response;
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    return response;
+
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      throw makeHttpError("NETWORK_TIMEOUT", 0, null);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ---- Example ports of the functions you already have ----
@@ -44,8 +62,19 @@ export async function apiFetch(path, options = {}) {
 export async function fetchCurrentUser() {
   const response = await apiFetch(API_ENDPOINTS.CURRENT_USER);
 
-  if (response.status === 401) throw makeHttpError("UNAUTHORIZED", 401, null);
-  if (!response.ok) throw makeHttpError("FETCH_CURRENT_USER_FAILED", response.status, null);
+  // Authentication error - let caller decide (e.g. logout)
+  if (response.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+
+  // Other server errors
+  if (!response.ok) {
+    throw makeHttpError(
+      "FETCH_CURRENT_USER_FAILED",
+      response.status,
+      null
+    );
+  }
 
   return response.json();
 }

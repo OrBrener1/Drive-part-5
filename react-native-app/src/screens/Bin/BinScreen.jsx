@@ -1,28 +1,31 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
-import { useFiles } from "../../hooks/useFiles";
+import { useBinFiles } from "../../hooks/useBinFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
 import { useFileActions } from "../../hooks/useFileActions";
 import { useSearchFiles } from "../../hooks/useSearchFiles";
-
-import FilesEmptyState from "../../components/files/FilesEmptyState";
-import FileList from "../../components/files/FileList";
-import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
+import FileList from "../../components/files/FileList";
+import FilesEmptyState from "../../components/files/FilesEmptyState";
+import PermissionsModal from "../../components/permissions/PermissionsModal";
 import CreateOverlay from "../../components/create/CreateOverlay";
 
-export default function FilesScreen() {
+export default function BinScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-
   const { logout, user } = useContext(AuthContext);
-  const { files, status, loadFiles } = useFiles();
+  const { files, status, loadFiles } = useBinFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+
+  const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
+    useFileActions({
+      loadFiles,
+      onUnauthorized: () => logout(),
+    });
 
   useFocusEffect(
     useCallback(() => {
@@ -31,12 +34,6 @@ export default function FilesScreen() {
       });
     }, [loadFiles, logout])
   );
-
-  const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
 
   const search = useSearchFiles(query);
   const listData = useMemo(() => {
@@ -47,31 +44,26 @@ export default function FilesScreen() {
   }, [files, query, search.results]);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: 16,
-      }}
-    >
-      <TopBar query={query} onChangeQuery={setQuery} />
+    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
+      <TopBar query={query} onChangeQuery={setQuery} placeholder="Search in Bin" />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
-        My Drive
+        Bin
       </Text>
+
       {status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
           Loading files...
         </Text>
       )}
 
       {query.trim() && search.status === "loading" && (
-        <Text style={{ color: colors.textSecondary }}>
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
           Searching...
         </Text>
       )}
 
       {query.trim() && search.status === "error" && (
-        <Text style={{ color: colors.textSecondary }}>
+        <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
           Search failed. Try again.
         </Text>
       )}
@@ -87,6 +79,7 @@ export default function FilesScreen() {
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
+          listContext="bin"
           currentUserId={user?.id}
         />
       )}

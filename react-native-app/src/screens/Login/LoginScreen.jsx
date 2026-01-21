@@ -60,7 +60,7 @@ export default function LoginScreen() {
       if (!result.ok) {
         setError(result.message || "Login failed");
       } else {
-        router.replace("/files");
+        router.replace("/private/(tabs)/home");
       }
     } catch {
       setError("Unexpected error");
@@ -78,7 +78,7 @@ export default function LoginScreen() {
           Don’t have an account?{" "}
           <Text
             style={styles.footerLink}
-            onPress={() => router.push("/register")}
+            onPress={() => router.push("/public/register")}
           >
             Create one
           </Text>

@@ -4,9 +4,8 @@ import { API_ENDPOINTS } from "./apiEndpoints";
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!BASE_URL) {
-  throw new Error("EXPO_PUBLIC_API_URL is not defined");
+  throw new Error("API base URL is not defined in environment variables.");
 }
-
 // We chose to not use AsyncStorage to keep the tokens, 
 // so the user has to log in again after closing the app. 
 let inMemoryToken = null;

@@ -9,16 +9,33 @@ function isValidFileId(id) {
 // GET /api/files
 const getFilesInRootForUser = async (req, res) => {
   const userId = req.userId;
-  const { starred } = req.query || {};
+  const { parentId = null, starred } = req.query || {};
 
   if (starred === 'true') {
     const files = await filesService.getStarredForUser(userId);
     return res.status(200).json(await attachOwnerInfo(files, userId));
   }
 
+  if (parentId !== null) {
+    const result = await filesService.getFilesByParent(userId, parentId);
+
+    if (result === 'PARENT_NOT_FOUND')
+      return res.status(404).json({ error: 'Parent not found' });
+
+    if (result === 'INVALID_PARENT')
+      return res.status(400).json({ error: 'Invalid parent' });
+
+    if (result === 'NO_PERMISSION')
+      return res.status(403).json({ error: 'Forbidden' });
+
+    return res.status(200).json(await attachOwnerInfo(result, userId));
+  }
+
+  // root
   const files = await filesService.getFilesInRootForUser(userId);
   return res.status(200).json(await attachOwnerInfo(files, userId));
 };
+
 
 // GET /api/files/shared
 const getSharedWithMe = async (req, res) => {

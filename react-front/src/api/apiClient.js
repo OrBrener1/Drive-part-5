@@ -43,11 +43,19 @@ export async function apiFetch(path, options = {}) {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-
-  return fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers,
   });
+
+  //CENTRALIZED AUTH FAILURE
+  if (response.status === 401) {
+    setToken(null);      // remove from localStorage
+    window.dispatchEvent(new Event("auth-logout"));
+     return response;
+  }
+
+  return response;
 }
 
 // Files

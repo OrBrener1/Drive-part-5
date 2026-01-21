@@ -17,6 +17,7 @@ export default function RecentScreen() {
         loading={loading}
         error={error}
         onRefresh={reload}
+        onRenameSuccess={reload}
       />
     </View>
   );

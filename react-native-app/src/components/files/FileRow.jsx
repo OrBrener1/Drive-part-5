@@ -2,6 +2,7 @@ import { useContext, useMemo, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../Theme/ThemeContext";
+import RenameModal from "./RenameModal";
 
 export default function FileRow({
   item,
@@ -10,12 +11,15 @@ export default function FileRow({
   onToggleStar,
   onMoveToBin,
   onRestoreFromBin,
+  onRenameSuccess,
+  onUnauthorized,
   listContext = "default",
   currentUserId,
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
 
   const isFolder = item?.type === "folder";
   const isStarred = Boolean(item?.isStarred);
@@ -36,6 +40,13 @@ export default function FileRow({
         key: "star",
         label: isStarred ? "Unstar" : "Star",
         onPress: () => onToggleStar(item),
+      });
+    }
+    if (!isBinView && onRenameSuccess) {
+      items.push({
+        key: "rename",
+        label: "Rename",
+        onPress: () => setRenameOpen(true),
       });
     }
     if (isBinView && onRestoreFromBin) {
@@ -154,6 +165,16 @@ export default function FileRow({
           </View>
         </Pressable>
       </Modal>
+      <RenameModal
+        visible={renameOpen}
+        itemId={item?.id}
+        initialName={item?.name}
+        onUnauthorized={onUnauthorized}
+        onClose={() => setRenameOpen(false)}
+        onSuccess={(newName) => {
+          onRenameSuccess?.(item, newName);
+        }}
+      />
     </>
   );
 }

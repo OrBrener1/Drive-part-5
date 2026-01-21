@@ -93,7 +93,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
     }
 
     try {
-      await createItem({
+      const created = await createItem({
         name: name.trim(),
         type,
         parentId,
@@ -101,7 +101,7 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
       });
 
       cancelCreate();
-      onSuccess?.();
+      onSuccess?.(created);
     } catch (err) {
       if (err?.message === "UNAUTHORIZED" || err?.status === 401) {
         onUnauthorized?.(err);

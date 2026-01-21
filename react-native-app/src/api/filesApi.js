@@ -23,12 +23,12 @@ export async function createItem({ name, type, parentId, content }) {
   }
 
   if (!response.ok) {
-    const err = makeHttpError(
+    const body = await response.json().catch(() => ({}));
+    throw makeHttpError(
       body?.error || "CREATE_ITEM_FAILED",
       response.status,
       body
     );
-    throw err;
   }
 
   return response.json();
@@ -81,7 +81,7 @@ export async function getRootFiles() {
 // Fetch files by parent (root or folder)
 // Endpoint: GET /files?parentId=...
 export async function getFiles(parentId = null) {
-  console.log("📁 FETCH FILES parentId =", parentId);
+  console.log("FETCH FILES parentId =", parentId);
   const url = parentId
     ? `${API_ENDPOINTS.FILES}?parentId=${parentId}`
     : API_ENDPOINTS.FILES;
@@ -115,6 +115,48 @@ export async function getFileById(fileId) {
   }
 
   return res.json();
+}
+
+// Update file metadata/content
+// Endpoint: PATCH /files/:id
+export async function updateFileContent(fileId, content) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content }),
+  });
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw makeHttpError(body?.error || "UPDATE_FILE_FAILED", res.status, body);
+  }
+
+  return true;
+}
+
+export async function updateFileName(fileId, name) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw makeHttpError(body?.error || "UPDATE_FILE_FAILED", res.status, body);
+  }
+
+  return true;
 }
 
 

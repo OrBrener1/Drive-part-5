@@ -93,6 +93,18 @@ const updateParentById = async (id, newParentId) => {
   return toDomainItem(mongoItem);
 };
 /**
+ * Updates metadata fields for an existing item by ID
+ */
+const updateFileMetaById = async (id, updates = {}) => {
+  const mongoItem = await Item.findByIdAndUpdate(
+    id,
+    updates,
+    { new: true }
+  ).lean();
+
+  return toDomainItem(mongoItem);
+};
+/**
  * Updates lastOpened timestamp for an item
  */
 const touchLastOpened = async (id, timestamp) => {
@@ -140,6 +152,7 @@ module.exports = {
   searchByName,
   saveFile,
   updateFileNameById,
+  updateFileMetaById,
   updateParentById,
   touchLastOpened,
   deleteItemById

@@ -311,7 +311,16 @@ const getFileByIdWithContent = async (id, userId) => {
     }
 
     const body = parsed.rawBody; // Buffer
+    console.log(
+  '[GET] rawBody first bytes:',
+  body.slice(0, 8)
+);
+
     const contentType = detectContentTypeFromBuffer(body);
+console.log(
+  '[GET] detected contentType:',
+  contentType
+);
 
     return {
       status: 'OK',
@@ -341,30 +350,31 @@ const computeFullPath = (name, parent) => {
 
 //Creates a new file or folder
 //with proper permission checks
-const createFile = async (userId, name, type, parentId = null, content = '') => {
+const createFile = async (
+  userId,
+  name,
+  type,
+  parentId,
+  content,
+  options = {}   // options.isBinary === true for raw binary (images)
+) => {
   const id = generateId();
   let item;
   let parent = null;
   const nowIso = new Date().toISOString();
 
+  // Validate parent folder (if provided)
   if (parentId !== null) {
     parent = await filesRepository.getFileById(parentId);
 
-    if (!parent) {
-      return 'PARENT_NOT_FOUND';
-    }
-
-    if (parent.type !== 'folder') {
-      return 'INVALID_PARENT';
-    }
-
-    if (!await canUserAccessFile(userId, parent, 'post')) {
-      return 'NO_PERMISSION';
-    }
+    if (!parent) return 'PARENT_NOT_FOUND';
+    if (parent.type !== 'folder') return 'INVALID_PARENT';
+    if (!await canUserAccessFile(userId, parent, 'post')) return 'NO_PERMISSION';
   }
 
   const fullPath = computeFullPath(name, parent);
 
+  // Create metadata object
   try {
     item = FileSystemItemFactory.create(
       type,
@@ -380,25 +390,45 @@ const createFile = async (userId, name, type, parentId = null, content = '') => 
     return 'INVALID_TYPE';
   }
 
+  // Handle physical file creation (C++ server)
   if (item.type === 'file') {
     try {
-      const payload = normalizeContentForCpp(content ?? '');
-      item.contentType = deriveContentTypeFromContent(content ?? '');
-      const ok = await cppClientService.createFile(id, payload);
-      if (!ok) {
-        return 'CPP_ERROR';
+      let payload;
+
+      // Binary path (multipart upload / image replace)
+      if (options.isBinary === true) {
+        payload = content;          // Buffer – must NOT be modified
+        item.contentType = 'image';
+      } 
+      // Text path (JSON / editor content)
+      else {
+        payload = normalizeContentForCpp(content ?? '');
+        item.contentType = deriveContentTypeFromContent(content ?? '');
       }
+
+      console.log(
+        '[SERVICE createFile] payload first bytes:',
+        Buffer.isBuffer(payload) ? payload.slice(0, 8) : typeof payload
+      );
+
+      const ok = await cppClientService.createFile(id, payload);
+      if (!ok) return 'CPP_ERROR';
+
     } catch (e) {
       console.error('[filesService] C++ createFile failure:', e.message);
       return 'CPP_ERROR';
     }
   }
 
+  // Persist metadata in MongoDB
   await filesRepository.saveFile(item);
-  // Record creator's recent entry so it shows up for them
+
+  // Add to recent files for creator
   recentStore.touch(userId, id, nowIso);
+
   return { status: 'OK', file: item };
 };
+
 
 // filesService.js
 const getFilesByParent = async (userId, parentId) => {
@@ -485,7 +515,9 @@ const updateFileContent = async (id, userId, content) => {
       return 'CPP_ERROR';
     }
 
-    item.contentType = deriveContentTypeFromContent(content);
+    const nextContentType = deriveContentTypeFromContent(content);
+    item.contentType = nextContentType;
+    await filesRepository.updateFileMetaById(id, { contentType: nextContentType });
     return 'OK';
   } catch (e) {
     console.error('[filesService] C++ updateFileContent failure:', e && e.message ? e.message : e);
@@ -513,8 +545,13 @@ const replaceFileContent = async (id, userId, buffer) => {
     const created = await cppClientService.createFile(id, buffer);
     if (!created) return 'CPP_ERROR';
 
+    item.type = 'file';
     item.contentType = 'image';
+
+    await filesRepository.updateFileMetaById(id, { contentType: 'image' });
+
     return 'OK';
+
   } catch (e) {
     console.error('[filesService] replaceFileContent failed:', e.message);
     return 'CPP_ERROR';

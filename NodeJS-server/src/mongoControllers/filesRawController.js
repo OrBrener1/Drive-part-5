@@ -22,8 +22,8 @@ const getRawFile = async (req, res) => {
     return res.status(403).send('Forbidden');
   }
 
-  if (file.type !== 'file') {
-    return res.status(400).send('Not a file');
+  if (file.type !== 'file' && file.type !== 'image') {
+    return res.status(400).send('Not a binary file');
   }
 
   let raw;
@@ -43,10 +43,39 @@ const getRawFile = async (req, res) => {
 
   const body = raw.slice(idx + sep.length);
 
-  res.status(200);
-  res.setHeader('Content-Type', 'application/octet-stream');
-  res.send(body);
+  const mimeType =
+    file.contentType === 'image'
+      ? detectImageMime(body)
+      : 'application/octet-stream';
+  
+  res.writeHead(200, {
+  'Content-Type': mimeType,
+  'Content-Length': body.length,
+  });
+  res.end(body);
+
 };
+
+function detectImageMime(buf) {
+  if (!Buffer.isBuffer(buf) || buf.length < 4) return 'image/png';
+
+  // PNG
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) {
+    return 'image/png';
+  }
+
+  // JPG
+  if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) {
+    return 'image/jpeg';
+  }
+
+  // GIF
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) {
+    return 'image/gif';
+  }
+
+  return 'image/png';
+}
 
 module.exports = {
   getRawFile,

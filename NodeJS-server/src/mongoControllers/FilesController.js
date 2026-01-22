@@ -145,6 +145,46 @@ const createFile = async (req, res) => {
   return res.status(201).json(result.file);
 };
 
+// POST /api/files/upload
+const uploadFile = async (req, res) => {
+  const userId = req.userId;
+  console.log(
+  '[UPLOAD] buffer first bytes:',
+  req.file.buffer.slice(0, 8)
+);
+
+  const { parentId = null } = req.body || {};
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'Missing file' });
+  }
+
+  const name = req.file.originalname || 'Untitled';
+  const content = req.file.buffer;
+
+  const result = await filesService.createFile(
+  userId,
+  name,
+  'file',
+  parentId,
+  content,
+  { isBinary: true }
+);
+
+  if (typeof result === 'string') {
+    const map = {
+      PARENT_NOT_FOUND: 404,
+      INVALID_PARENT: 400,
+      NO_PERMISSION: 403,
+      INVALID_TYPE: 400,
+      CPP_ERROR: 503,
+    };
+    return res.status(map[result] || 500).json({ error: result });
+  }
+
+  return res.status(201).json(result.file);
+};
+
 // POST /api/files/:id/move
 const moveFile = async (req, res) => {
   const userId = req.userId;
@@ -350,6 +390,7 @@ module.exports = {
   getMoveFolders,
   getFileById,
   createFile,
+  uploadFile,
   updateFileById,
   deleteFileById,
   toggleStar,

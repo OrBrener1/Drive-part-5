@@ -5,6 +5,9 @@ import { ThemeContext } from "../../Theme/ThemeContext";
 import { updateFileContent } from "../../api/filesApi";
 
 export default function TextFileViewer({ item }) {
+  if (item.type === "image") {
+    return null;
+  }
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const insets = useSafeAreaInsets();

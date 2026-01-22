@@ -20,6 +20,7 @@ export default function CreateFab({ onPress }) {
         alignItems: "center",
         justifyContent: "center",
         elevation: 4,
+        zIndex: 10,
       }}
     >
       <Text style={{ color: "#fff", fontSize: 28 }}>+</Text>

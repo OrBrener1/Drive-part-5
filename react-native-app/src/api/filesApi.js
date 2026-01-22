@@ -1,6 +1,7 @@
 import { apiFetch } from "./apiClient";
 import { makeHttpError } from "./apiClient";
 import { API_ENDPOINTS } from "./apiEndpoints";
+import { apiFetchMultipart } from "./apiClient";
 
 // Create file / folder
 // Endpoint: POST /files
@@ -23,65 +24,99 @@ export async function createItem({ name, type, parentId, content }) {
   }
 
   if (!response.ok) {
-    const err = makeHttpError(
+    const body = await response.json().catch(() => ({}));
+    throw makeHttpError(
       body?.error || "CREATE_ITEM_FAILED",
       response.status,
       body
     );
-    throw err;
   }
 
-  return response.json();
+ return { ok: true };
+
 }
 
+// Upload file (with multipart/form-data)
+// Endpoint: POST /files/upload
 export async function uploadFile(file, parentId = null) {
   const formData = new FormData();
 
-  formData.append("file", {
-    uri: file.uri,
-    name: file.name,
-    type: file.type || "application/octet-stream",
-  });
+  const normalizedFile = {
+  uri: file.uri.startsWith("file://")
+    ? file.uri
+    : file.uri,
+  name: file.name || "image.jpg",
+  type: file.mimeType || file.type || "image/jpeg",
+};
+
+formData.append("file", normalizedFile);
+
 
   if (parentId) {
     formData.append("parentId", parentId);
   }
 
-  const response = await apiFetch(API_ENDPOINTS.UPLOAD_FILE, {
+  const response = await apiFetchMultipart(API_ENDPOINTS.UPLOAD_FILE, {
     method: "POST",
     body: formData,
   });
 
   if (response.status === 401) {
-    throw new Error("UNAUTHORIZED");
+    throw makeHttpError("UNAUTHORIZED", 401, null);
   }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body?.error || "UPLOAD_FAILED");
+    throw makeHttpError(body?.error || "UPLOAD_FAILED", response.status, body);
   }
 
-  return response.json();
+  return { ok: true };
+
 }
+// Replace image file (with multipart/form-data)
+// Endpoint: PUT /files/:id/replace
+export async function replaceImage(fileId, file) {
+  const formData = new FormData();
 
-export async function getRootFiles() {
-  const res = await apiFetch(API_ENDPOINTS.FILES);
+  const normalizedFile = {
+  uri: file.uri.startsWith("file://")
+    ? file.uri
+    : file.uri,
+  name: file.name || "image.jpg",
+  type: file.mimeType || file.type || "image/jpeg",
+};
 
-  if (res.status === 401) {
+formData.append("file", normalizedFile);
+
+  const response = await apiFetchMultipart(
+    `${API_ENDPOINTS.FILES}/${fileId}/replace`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  if (response.status === 401) {
     throw makeHttpError("UNAUTHORIZED", 401, null);
   }
-  if (!res.ok) {
-    const { message, body } = await readErrorMessage(res, "FETCH_FILES_FAILED");
-    throw makeHttpError(message, res.status, body);
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw makeHttpError(
+      body?.error || "REPLACE_IMAGE_FAILED",
+      response.status,
+      body
+    );
   }
 
-  return res.json();
+  return true;
 }
+
 
 // Fetch files by parent (root or folder)
 // Endpoint: GET /files?parentId=...
 export async function getFiles(parentId = null) {
-  console.log("📁 FETCH FILES parentId =", parentId);
+  console.log("FETCH FILES parentId =", parentId);
   const url = parentId
     ? `${API_ENDPOINTS.FILES}?parentId=${parentId}`
     : API_ENDPOINTS.FILES;
@@ -115,6 +150,48 @@ export async function getFileById(fileId) {
   }
 
   return res.json();
+}
+
+// Update file metadata/content
+// Endpoint: PATCH /files/:id
+export async function updateFileContent(fileId, content) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content }),
+  });
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw makeHttpError(body?.error || "UPDATE_FILE_FAILED", res.status, body);
+  }
+
+  return true;
+}
+
+export async function updateFileName(fileId, name) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw makeHttpError(body?.error || "UPDATE_FILE_FAILED", res.status, body);
+  }
+
+  return true;
 }
 
 

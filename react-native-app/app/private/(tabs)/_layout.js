@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Tabs } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../../src/Theme/ThemeContext";
-import { CreateUIProvider } from "../../context/CreateUIContext";
+import { CreateUIProvider } from "../../../src/context/CreateUIContext";
 
 export default function TabsLayout() {
   const { theme } = useContext(ThemeContext);
@@ -55,6 +55,12 @@ export default function TabsLayout() {
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name="star" color={color} size={size} />
             ),
+          }}
+        />
+        <Tabs.Screen
+          name="folder/[id]"
+          options={{
+            href: null,
           }}
         />
       </Tabs>

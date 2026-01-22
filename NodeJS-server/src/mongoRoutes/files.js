@@ -26,8 +26,13 @@ router.get('/:id/raw', authService, filesRawController.getRawFile);
 const multer = require('multer');
 const upload = multer();
 
+// POST /api/files/upload  (UPLOAD FILE)
+router.post('/upload', authService, upload.single('file'), filesController.uploadFile);
+
 // PUT /api/files/:id/replace  (REPLACE IMAGE FILE)
 router.put('/:id/replace', authService, upload.single('file'), filesController.replaceFileById);
+// POST /api/files/:id/replace  (RN multipart fallback)
+router.post('/:id/replace', authService, upload.single('file'), filesController.replaceFileById);
 
 // POST /api/files/:id/move
 router.post('/:id/move', authService, filesController.moveFile);

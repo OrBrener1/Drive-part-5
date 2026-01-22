@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import UserMenu from "../userMenu/UserMenu";
 import NavMenu from "./NavMenu";

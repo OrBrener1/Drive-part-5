@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { View, Text, Image, useWindowDimensions, ScrollView } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { createStyles } from "./AuthCard.styles";
 
 export default function AuthCard({ title, subtitle, children, footer }) {

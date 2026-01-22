@@ -1,7 +1,7 @@
 .session-expired-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--overlay-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9,15 +9,28 @@
 }
 
 .session-expired-modal {
-  background: white;
+  background: var(--bg-card);
+  color: var(--text-primary);
   padding: 24px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   width: 320px;
   text-align: center;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-soft);
+}
+
+.session-expired-modal h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.session-expired-modal p {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
 .session-expired-modal button {
-  margin-top: 16px;
-  padding: 8px 16px;
-  cursor: pointer;
+  width: 100%;
 }

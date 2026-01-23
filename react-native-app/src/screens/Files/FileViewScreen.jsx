@@ -10,17 +10,21 @@ export default function FileViewScreen() {
 
   console.log("FILE VIEW SCREEN RENDER", fileId);
 
-  useEffect(() => {
+  async function loadItem() {
     if (!fileId) return;
+    try {
+      const data = await getFileById(fileId);
+      setItem(data);
+    } catch {
+      Alert.alert(
+        "Cannot open file",
+        "File server is unavailable"
+      );
+    }
+  }
 
-    getFileById(fileId)
-      .then(setItem)
-      .catch(() => {
-        Alert.alert(
-          "Cannot open file",
-          "File server is unavailable"
-        );
-      });
+  useEffect(() => {
+    loadItem();
   }, [fileId]);
 
   if (!item) {
@@ -31,5 +35,5 @@ export default function FileViewScreen() {
     );
   }
 
-  return <FileViewer item={item} />;
+  return <FileViewer item={item} onRefresh={loadItem} />;
 }

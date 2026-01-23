@@ -1,5 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
@@ -15,6 +15,7 @@ import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
 import { useCreateUI } from "../../context/CreateUIContext";
 import CreateFab from "../../components/files/CreateFab";
+import Screen from "../../components/layout/Screen";
 
 export default function StarredScreen() {
   const { theme } = useContext(ThemeContext);
@@ -48,7 +49,7 @@ export default function StarredScreen() {
   }, [files, query, search.results]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
+    <Screen style={{ backgroundColor: colors.background }}>
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Starred
@@ -101,6 +102,6 @@ export default function StarredScreen() {
         onClose={permissionsUI.closePermissions}
       />
       <CreateFab onPress={openMenu} />
-    </View>
+    </Screen>
   );
 }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { View, Text, Alert } from "react-native";
+import { Text, Alert } from "react-native";
 import { router } from "expo-router";
 
 import { getFileById } from "../../api/filesApi";
 import FileViewer from "../../components/viewer/FileViewer";
+import Screen from "../../components/layout/Screen";
 
 export default function FileViewScreen({ fileId }) {
   const [item, setItem] = useState(null);
@@ -22,9 +23,9 @@ export default function FileViewScreen({ fileId }) {
 
   if (!item) {
     return (
-      <View style={{ flex: 1, padding: 16 }}>
+      <Screen contentStyle={{ paddingTop: 16 }}>
         <Text>Loading...</Text>
-      </View>
+      </Screen>
     );
   }
 

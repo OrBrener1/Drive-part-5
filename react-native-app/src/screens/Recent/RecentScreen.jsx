@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import Screen from "../../components/layout/Screen";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
@@ -11,13 +11,13 @@ export default function RecentScreen() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <Screen>
       <FileList
         files={files}
         loading={loading}
         error={error}
         onRefresh={reload}
       />
-    </View>
+    </Screen>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { View, Text, Image, useWindowDimensions, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { createStyles } from "./AuthCard.styles";
 
@@ -15,7 +16,7 @@ export default function AuthCard({ title, subtitle, children, footer }) {
   );
 
   return (
-    <View style={styles.page}>
+    <SafeAreaView style={styles.page} edges={["top", "bottom"]}>
       <Image
         source={require("../../../assets/ogs-logo.png")}
         style={styles.logo}
@@ -41,6 +42,6 @@ export default function AuthCard({ title, subtitle, children, footer }) {
           <View style={styles.footer}>{footer}</View>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

@@ -1,22 +1,54 @@
-import { useState } from "react";
-import { useCreateActions } from "../../hooks/useCreateActions";
+import * as DocumentPicker from "expo-document-picker";
+import { uploadFile } from "../../api/filesApi";
 import { useCreateItem } from "../../hooks/useCreateItem";
-import CreateFab from "../files/CreateFab";
-import CreateMenu from "./CreateMenu";
+import { useCreateUI } from "../../context/CreateUIContext";
 import CreateItemModal from "./CreateItemModal";
+import CreateMenu from "./CreateMenu";
 
-export default function CreateOverlay({ onCreated, onUnauthorized }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { uploadFile } = useCreateActions();
+export default function CreateOverlay({
+  parentId = null,
+  onRefresh,
+  onUnauthorized,
+  onCreated,
+}) {
+  const { menuOpen, closeMenu } = useCreateUI();
 
   const create = useCreateItem({
-    onSuccess: onCreated,
+    onSuccess: async (created) => {
+      await onRefresh?.();
+      onCreated?.(created);
+      closeMenu();
+    },
     onUnauthorized,
   });
 
+  async function pickAndUploadFile() {
+    try {
+      closeMenu();
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*", "text/*"],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      const file = result.assets[0];
+
+      const uploadPayload = {
+        uri: file.uri,
+        name: file.name,
+        type: file.mimeType || "application/octet-stream",
+      };
+
+      await uploadFile(uploadPayload, parentId);
+      await onRefresh?.();
+    } catch (e) {
+      console.error("UPLOAD FAILED", e);
+    }
+  }
+
   return (
     <>
-      <CreateFab onPress={() => setMenuOpen(true)} />
       <CreateItemModal
         visible={Boolean(create.createType)}
         type={create.createType}
@@ -32,16 +64,16 @@ export default function CreateOverlay({ onCreated, onUnauthorized }) {
       />
       <CreateMenu
         visible={menuOpen}
-        onClose={() => setMenuOpen(false)}
+        onClose={closeMenu}
         onCreateFile={() => {
-          setMenuOpen(false);
-          create.startCreate("file");
+          closeMenu();
+          create.startCreate("file", parentId);
         }}
         onCreateFolder={() => {
-          setMenuOpen(false);
-          create.startCreate("folder");
+          closeMenu();
+          create.startCreate("folder", parentId);
         }}
-        onUploadFile={uploadFile}
+        onUploadFile={pickAndUploadFile}
       />
     </>
   );

@@ -4,9 +4,7 @@ const app = express();
 const connectDB = require('./db');
 
 require('dotenv').config();
-// ===============================
 // CORS configuration
-// ===============================
 const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map(o => o.trim())

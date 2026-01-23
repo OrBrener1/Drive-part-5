@@ -1,6 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
@@ -15,6 +16,7 @@ import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
 import { useCreateUI } from "../../context/CreateUIContext";
 import CreateFab from "../../components/files/CreateFab";
+import CreateOverlay from "../../components/create/CreateOverlay";
 import Screen from "../../components/layout/Screen";
 
 export default function HomeScreen() {
@@ -23,6 +25,7 @@ export default function HomeScreen() {
   const { logout, user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useRecentFiles();
   const { openMenu } = useCreateUI();
+  const router = useRouter();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
@@ -88,6 +91,15 @@ export default function HomeScreen() {
       {status === "success" && listData.length > 0 && (
         <FileList
           files={listData}
+          onItemPress={(item) => {
+            if (item.type === "folder") {
+              router.push(`/private/(tabs)/folder/${item.id}`);
+            } else {
+              router.push(`/private/file/${item.id}`);
+            }
+          }}
+          onRenameSuccess={() => loadFiles()}
+          onUnauthorized={logout}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
@@ -100,6 +112,7 @@ export default function HomeScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
+      <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
       <CreateFab onPress={openMenu} />
     </Screen>
   );

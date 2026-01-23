@@ -2,29 +2,24 @@ import { useCallback, useContext, useState } from "react";
 import { Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-import * as DocumentPicker from "expo-document-picker";
 
 import { ThemeContext } from "../../Theme/ThemeContext";
-import { uploadFile } from "../../api/filesApi";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
 import { useCreateUI } from "../../context/CreateUIContext";
-
 import { useFileActions } from "../../hooks/useFileActions";
 import { useSearchFiles } from "../../hooks/useSearchFiles";
-import { useCreateItem } from "../../hooks/useCreateItem";
 import { getErrorMessage } from "../../utils/errorMessages";
 
-import CreateMenu from "../../components/create/CreateMenu";
 import CreateFab from "../../components/files/CreateFab";
-import CreateItemModal from "../../components/create/CreateItemModal";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import FileList from "../../components/files/FileList";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
 import LoadingState from "../../components/common/LoadingState";
 import Screen from "../../components/layout/Screen";
+import CreateOverlay from "../../components/create/CreateOverlay";
 
 export default function FilesScreen({ parentId = null }) {
   const { theme } = useContext(ThemeContext);
@@ -34,7 +29,7 @@ export default function FilesScreen({ parentId = null }) {
   const { files, status, error, loadFiles } = useFiles(parentId);
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
-  const { menuOpen, openMenu, closeMenu } = useCreateUI();
+  const { openMenu } = useCreateUI();
   const router = useRouter();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
@@ -51,51 +46,25 @@ export default function FilesScreen({ parentId = null }) {
     }, [loadFiles, logout])
   );
 
-  const create = useCreateItem({
-    onSuccess: async () => {
-      await loadFiles();
-    },
-    onUnauthorized: logout,
-  });
-
   const search = useSearchFiles(query);
   const listData = query.trim() ? search.results : files;
 
-  async function pickAndUploadFile() {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ["image/*", "text/*"],
-        copyToCacheDirectory: true,
-      });
-
-      if (result.canceled) return;
-
-      const file = result.assets[0];
-
-      const uploadPayload = {
-        uri: file.uri,
-        name: file.name,
-        type: file.mimeType || "application/octet-stream",
-      };
-
-      await uploadFile(uploadPayload, parentId);
-      await loadFiles();
-    } catch (e) {
-      console.error("UPLOAD FAILED", e);
-    }
-  }
   return (
     <Screen
       style={{ backgroundColor: colors.background }}
       contentStyle={{ paddingBottom: 96 }}
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.background,
+        padding: 16,
+      }}
     >
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
-      {parentId ? "Folder" : "My Drive"}
+        {parentId ? "Folder" : "My Drive"}
       </Text>
-      {status === "loading" && (
-        <LoadingState label="Loading files..." />
-      )}
+      {status === "loading" && <LoadingState label="Loading files..." />}
 
       {query.trim() && search.status === "loading" && (
         <LoadingState label="Searching..." />
@@ -114,9 +83,7 @@ export default function FilesScreen({ parentId = null }) {
       )}
 
       {query.trim() && search.status === "success" && listData.length === 0 && (
-        <Text style={{ color: colors.textSecondary }}>
-          No matching results.
-        </Text>
+        <Text style={{ color: colors.textSecondary }}>No matching results.</Text>
       )}
 
       {!query.trim() && status === "success" && listData.length === 0 && (
@@ -126,9 +93,10 @@ export default function FilesScreen({ parentId = null }) {
       {status === "success" && listData.length > 0 && (
         <FileList
           files={listData}
+          contentContainerStyle={{ paddingBottom: 96 }}
           onItemPress={(item) => {
             if (item.type === "folder") {
-              router.push(`/private/folder/${item.id}`);
+              router.push(`/private/(tabs)/folder/${item.id}`);
             } else {
               router.push(`/private/file/${item.id}`);
             }
@@ -138,6 +106,8 @@ export default function FilesScreen({ parentId = null }) {
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
           currentUserId={user?.id}
+          onRenameSuccess={() => loadFiles()}
+          onUnauthorized={logout}
         />
       )}
       <PermissionsModal
@@ -145,6 +115,14 @@ export default function FilesScreen({ parentId = null }) {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
+      <CreateOverlay
+        parentId={parentId}
+        onRefresh={loadFiles}
+        onUnauthorized={logout}
+        onCreated={() => setQuery("")}
+      />
+      <CreateFab onPress={openMenu} />
+    </View>
       <CreateItemModal
         visible={Boolean(create.createType)}
         type={create.createType}

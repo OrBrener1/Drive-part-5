@@ -8,13 +8,19 @@ export default function FileList({
   onToggleStar,
   onMoveToBin,
   onRestoreFromBin,
+  onRenameSuccess,
+  onUnauthorized,
   listContext,
   currentUserId,
+  contentContainerStyle,
+  style,
 }) {
   return (
     <FlatList
+      style={style}
       data={files}
       keyExtractor={(item) => item.id}
+      contentContainerStyle={contentContainerStyle}
       renderItem={({ item }) => (
         <FileRow
           item={item}
@@ -23,6 +29,8 @@ export default function FileList({
           onToggleStar={onToggleStar}
           onMoveToBin={onMoveToBin}
           onRestoreFromBin={onRestoreFromBin}
+          onRenameSuccess={onRenameSuccess}
+          onUnauthorized={onUnauthorized}
           listContext={listContext}
           currentUserId={currentUserId}
         />

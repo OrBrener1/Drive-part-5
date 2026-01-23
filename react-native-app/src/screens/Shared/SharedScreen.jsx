@@ -1,6 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { AuthContext } from "../../context/AuthContext";
 import { useSharedFiles } from "../../hooks/useSharedFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -15,6 +16,7 @@ import LoadingState from "../../components/common/LoadingState";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import CreateFab from "../../components/files/CreateFab";
 import { useCreateUI } from "../../context/CreateUIContext";
+import CreateOverlay from "../../components/create/CreateOverlay";
 import Screen from "../../components/layout/Screen";
 
 export default function SharedScreen() {
@@ -25,6 +27,7 @@ export default function SharedScreen() {
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { openMenu } = useCreateUI();
+  const router = useRouter();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({
@@ -88,6 +91,15 @@ export default function SharedScreen() {
       {status === "success" && listData.length > 0 && (
         <FileList
           files={listData}
+          onItemPress={(item) => {
+            if (item.type === "folder") {
+              router.push(`/private/(tabs)/folder/${item.id}`);
+            } else {
+              router.push(`/private/file/${item.id}`);
+            }
+          }}
+          onRenameSuccess={() => loadFiles()}
+          onUnauthorized={logout}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
@@ -100,6 +112,7 @@ export default function SharedScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
+      <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
       <CreateFab onPress={openMenu} />
     </Screen>
   );

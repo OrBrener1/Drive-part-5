@@ -83,36 +83,35 @@ export async function fetchCurrentUser() {
   return response.json();
 }
 
-// Create file / folder
-// Endpoint: POST /files
-export async function createItem({ name, type, parentId, content }) {
-  const response = await apiFetch(API_ENDPOINTS.FILES, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name,
-      type,
-      parentId: parentId ?? null,
-      ...(type !== "folder" ? { content: content ?? "" } : {}),
-    }),
-  });
+// Upload file (with multipart/form-data)
+export async function apiFetchMultipart(path, options = {}) {
+  console.log("MULTIPART FETCH:", `${BASE_URL}${path}`);
+  const headers = { ...(options.headers || {}) };
+  const timeoutMs = options.timeoutMs ?? 15000;
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw makeHttpError(
-      body?.error || "CREATE_ITEM_FAILED",
-      response.status,
-      body
-    );
-  }
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  return response.json();
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers, // Do not set Content-Type header for multipart/form-data; let fetch handle it
+      signal: controller.signal,
+    });
+    return response;
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      throw makeHttpError("NETWORK_TIMEOUT", 0, null);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // You can copy the rest of the endpoints as-is from your web apiClient,

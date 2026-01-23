@@ -1,4 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from "react";
+import { useRouter } from "expo-router";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { ThemeContext } from "../../Theme/ThemeContext";
@@ -19,15 +20,15 @@ export default function BinScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { logout, user } = useContext(AuthContext);
+  const router = useRouter();
   const { files, status, error, loadFiles } = useBinFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
-  const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+  const { handleMoveToBin, handleRestoreFromBin, handleDeleteForever } = useFileActions({
+    loadFiles,
+    onUnauthorized: () => logout(),
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -47,7 +48,12 @@ export default function BinScreen() {
 
   return (
     <Screen style={{ backgroundColor: colors.background }}>
-      <TopBar query={query} onChangeQuery={setQuery} placeholder="Search in Bin" />
+      <TopBar
+        query={query}
+        onChangeQuery={setQuery}
+        showNavMenu={false}
+        onBack={() => router.back()}
+      />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Bin
       </Text>
@@ -86,9 +92,9 @@ export default function BinScreen() {
         <FileList
           files={listData}
           onOpenPermissions={permissionsUI.openPermissions}
-          onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
+          onDeleteForever={handleDeleteForever}
           listContext="bin"
           currentUserId={user?.id}
         />

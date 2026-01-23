@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "react-native-app",
-    "slug": "react-native-app",
+    "name": "Drive-Me-Nuts",
+    "slug": "drive-me",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/ogs-logo.png",
@@ -13,7 +13,13 @@
     },
     "android": {
       "adaptiveIcon": {
-            "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/ogs-logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "splash": {
+        "image": "./assets/ogs-logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
       },
       "usesCleartextTraffic": true,
       "edgeToEdgeEnabled": true,
@@ -28,7 +34,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/ogs-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

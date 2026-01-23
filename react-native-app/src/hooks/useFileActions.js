@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { Alert } from "react-native";
-import { moveFileToBin, restoreFileFromBin, toggleStar } from "../api/filesApi";
+import { moveFileToBin, restoreFileFromBin, toggleStar, deleteFileForever } from "../api/filesApi";
 import { getErrorMessage } from "../utils/errorMessages";
 
 export function useFileActions({ loadFiles, onUnauthorized } = {}) {
@@ -61,9 +61,29 @@ export function useFileActions({ loadFiles, onUnauthorized } = {}) {
     [loadFiles, onUnauthorized]
   );
 
+  const handleDeleteForever = useCallback(
+    async (item) => {
+      try {
+        await deleteFileForever(item.id);
+        await loadFiles?.();
+      } catch (e) {
+        if (e?.message === "UNAUTHORIZED" || e?.status === 401) {
+          onUnauthorized?.(e);
+          return;
+        }
+        Alert.alert(
+          "Failed to delete",
+          getErrorMessage(e, { fallback: "Please try again." })
+        );
+      }
+    },
+    [loadFiles, onUnauthorized]
+  );
+
   return {
     handleToggleStar,
     handleMoveToBin,
     handleRestoreFromBin,
+    handleDeleteForever,
   };
 }

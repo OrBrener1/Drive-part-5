@@ -337,6 +337,22 @@ export async function restoreFileFromBin(itemId) {
   return true;
 }
 
+export async function deleteFileForever(itemId) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${itemId}`, {
+    method: "DELETE",
+  });
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "DELETE_FOREVER_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return true;
+}
+
 export async function getPermissions(fileId) {
   const res = await apiFetch(API_ENDPOINTS.PERMISSIONS(fileId));
 

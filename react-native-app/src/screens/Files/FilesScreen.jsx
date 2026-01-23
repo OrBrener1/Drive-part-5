@@ -53,12 +53,6 @@ export default function FilesScreen({ parentId = null }) {
     <Screen
       style={{ backgroundColor: colors.background }}
       contentStyle={{ paddingBottom: 96 }}
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: 16,
-      }}
     >
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
@@ -122,34 +116,6 @@ export default function FilesScreen({ parentId = null }) {
         onCreated={() => setQuery("")}
       />
       <CreateFab onPress={openMenu} />
-    </View>
-      <CreateItemModal
-        visible={Boolean(create.createType)}
-        type={create.createType}
-        name={create.name}
-        content={create.content}
-        nameError={create.nameError}
-        createError={create.createError}
-        canSubmit={create.canSubmit}
-        onNameChange={create.onNameChange}
-        onContentChange={create.onContentChange}
-        onSubmit={create.submit}
-        onCancel={create.cancelCreate}
-      />
-    <CreateMenu
-      visible={menuOpen}
-      onClose={closeMenu}
-      onCreateFile={() => {
-        create.startCreate("file", parentId);
-      }}
-      onCreateFolder={() => {
-        create.startCreate("folder", parentId);
-      }}
-      onUploadFile={() => {
-        pickAndUploadFile();
-      }}
-    />
-    <CreateFab onPress={openMenu} />
     </Screen>
   );
 }

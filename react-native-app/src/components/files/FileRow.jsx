@@ -14,6 +14,7 @@ export default function FileRow({
   onToggleStar,
   onMoveToBin,
   onRestoreFromBin,
+  onDeleteForever,
   onRenameSuccess,
   onUnauthorized,
   listContext = "default",
@@ -117,6 +118,13 @@ export default function FileRow({
         label: "Restore",
         onPress: () => onRestoreFromBin(item),
       });
+    }
+    if (isBinView && onDeleteForever) {
+      items.push({
+        key: "delete_forever",
+        label: "Delete forever",
+        onPress: () => onDeleteForever(item),
+      });
     } else if (!isBinView && onMoveToBin) {
       items.push({
         key: "bin",
@@ -130,6 +138,7 @@ export default function FileRow({
     isStarred,
     item,
     onMoveToBin,
+    onDeleteForever,
     onOpenPermissions,
     onRestoreFromBin,
     onToggleStar,

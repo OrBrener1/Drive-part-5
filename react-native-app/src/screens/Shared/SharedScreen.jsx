@@ -1,5 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { AuthContext } from "../../context/AuthContext";
@@ -13,15 +13,16 @@ import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import CreateFab from "../../components/files/CreateFab";
 import { useCreateUI } from "../../context/CreateUIContext";
 import CreateOverlay from "../../components/create/CreateOverlay";
+import Screen from "../../components/layout/Screen";
 
 export default function SharedScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useSharedFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
@@ -29,17 +30,12 @@ export default function SharedScreen() {
   const router = useRouter();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);
@@ -51,7 +47,7 @@ export default function SharedScreen() {
   }, [files, query, search.results]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
+    <Screen style={{ backgroundColor: colors.background }}>
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Shared with me
@@ -97,8 +93,8 @@ export default function SharedScreen() {
               router.push(`/private/file/${item.id}`);
             }
           }}
+          onMove={(item) => router.push(`/private/move/${item.id}`)}
           onRenameSuccess={() => loadFiles()}
-          onUnauthorized={logout}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
@@ -111,8 +107,8 @@ export default function SharedScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
-      <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
+      <CreateOverlay onRefresh={loadFiles} />
       <CreateFab onPress={openMenu} />
-    </View>
+    </Screen>
   );
 }

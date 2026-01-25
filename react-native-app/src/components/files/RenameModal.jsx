@@ -1,6 +1,6 @@
 import { useEffect, useRef, useContext } from "react";
 import { Modal, View, Text, TextInput, Pressable } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { useRenameItem } from "../../hooks/useRenameItem";
 
 export default function RenameModal({
@@ -9,7 +9,6 @@ export default function RenameModal({
   initialName,
   onClose,
   onSuccess,
-  onUnauthorized,
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -23,7 +22,6 @@ export default function RenameModal({
         onSuccess?.(newName);
         onClose?.();
       },
-      onUnauthorized,
     });
 
   useEffect(() => {

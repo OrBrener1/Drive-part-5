@@ -1,7 +1,7 @@
 import { useContext, useMemo, useState } from "react";
 import { Alert, Modal, Platform, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import RenameModal from "./RenameModal";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
@@ -14,8 +14,9 @@ export default function FileRow({
   onToggleStar,
   onMoveToBin,
   onRestoreFromBin,
+  onDeleteForever,
+  onMove,
   onRenameSuccess,
-  onUnauthorized,
   listContext = "default",
   currentUserId,
 }) {
@@ -111,11 +112,25 @@ export default function FileRow({
         onPress: () => setRenameOpen(true),
       });
     }
+    if (!isBinView && onMove) {
+      items.push({
+        key: "move",
+        label: "Move",
+        onPress: () => onMove(item),
+      });
+    }
     if (isBinView && onRestoreFromBin) {
       items.push({
         key: "restore",
         label: "Restore",
         onPress: () => onRestoreFromBin(item),
+      });
+    }
+    if (isBinView && onDeleteForever) {
+      items.push({
+        key: "delete_forever",
+        label: "Delete forever",
+        onPress: () => onDeleteForever(item),
       });
     } else if (!isBinView && onMoveToBin) {
       items.push({
@@ -130,6 +145,8 @@ export default function FileRow({
     isStarred,
     item,
     onMoveToBin,
+    onDeleteForever,
+    onMove,
     onOpenPermissions,
     onRestoreFromBin,
     onToggleStar,
@@ -231,7 +248,6 @@ export default function FileRow({
         visible={renameOpen}
         itemId={item?.id}
         initialName={item?.name}
-        onUnauthorized={onUnauthorized}
         onClose={() => setRenameOpen(false)}
         onSuccess={(newName) => {
           onRenameSuccess?.(item, newName);

@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { I18nManager, Pressable, TextInput, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import UserMenu from "../userMenu/UserMenu";
 import NavMenu from "./NavMenu";
@@ -11,6 +11,8 @@ export default function TopBar({
   query,
   onChangeQuery,
   placeholder = "Search in Drive",
+  showNavMenu = true,
+  onBack,
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -66,27 +68,53 @@ export default function TopBar({
           />
         </View>
 
-        <Pressable
-          onPress={() => setNavMenuOpen(true)}
-          hitSlop={8}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            alignItems: "center",
-            justifyContent: "center",
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: colors.surface,
-            zIndex: 2,
-          }}
-        >
-          <MaterialIcons name="menu" size={20} color={colors.textSecondary} />
-        </Pressable>
+        {onBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={8}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              zIndex: 2,
+            }}
+          >
+          <MaterialIcons
+            name="arrow-forward"
+            size={20}
+            color={colors.textSecondary}
+          />
+          </Pressable>
+        ) : showNavMenu ? (
+          <Pressable
+            onPress={() => setNavMenuOpen(true)}
+            hitSlop={8}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              zIndex: 2,
+            }}
+          >
+            <MaterialIcons name="menu" size={20} color={colors.textSecondary} />
+          </Pressable>
+        ) : null}
       </View>
 
       <UserMenu visible={userMenuOpen} onClose={() => setUserMenuOpen(false)} />
-      <NavMenu visible={navMenuOpen} onClose={() => setNavMenuOpen(false)} />
+      {showNavMenu ? (
+        <NavMenu visible={navMenuOpen} onClose={() => setNavMenuOpen(false)} />
+      ) : null}
     </>
   );
 }

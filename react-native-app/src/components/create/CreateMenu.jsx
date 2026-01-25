@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, Pressable, Modal } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import CreateMenuItem from "./CreateMenuItem";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

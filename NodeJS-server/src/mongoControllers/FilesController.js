@@ -113,6 +113,26 @@ const getBin = async (req, res) => {
   }
 };
 
+// GET /api/files/:id/descendants
+const getDescendants = async (req, res) => {
+  const userId = req.userId;
+  const fileId = req.params.id;
+
+  if (!isValidFileId(fileId)) {
+    return res.status(400).json({ error: 'Invalid file id' });
+  }
+
+  const result = await filesService.getDescendantIdsForUser(userId, fileId);
+
+  if (result === 'NOT_FOUND') {
+    return res.status(404).json({ error: 'File not found' });
+  }
+  if (result === 'NO_PERMISSION') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  return res.status(200).json({ ids: result });
+};
 
 // POST /api/files
 const createFile = async (req, res) => {
@@ -399,4 +419,5 @@ module.exports = {
   restoreFromBin,
   moveFile,
   replaceFileById,
+  getDescendants,
 };

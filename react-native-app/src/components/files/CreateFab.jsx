@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { Pressable, Text } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 
-export default function CreateFab({ onPress }) {
+export default function CreateFab({ onPress, bottomOffset = 20 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
@@ -12,7 +12,7 @@ export default function CreateFab({ onPress }) {
       style={{
         position: "absolute",
         right: 20,
-        bottom: 20,
+        bottom: bottomOffset,
         width: 56,
         height: 56,
         borderRadius: 28,

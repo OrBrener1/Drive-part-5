@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUserLoading, setIsUserLoading] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // On initial application load, try to restore the token
   // from localStorage to keep the user logged in after refresh
@@ -59,6 +60,25 @@ export function AuthProvider({ children }) {
       isActive = false;
     };
   }, [token]);
+  
+  // makes sure that if a user loses token while web is still open, make it log out. 
+useEffect(() => {
+  function handleAuthLogout() {
+    setSessionExpired(true);
+  }
+
+  window.addEventListener("auth-logout", handleAuthLogout);
+  return () => {
+    window.removeEventListener("auth-logout", handleAuthLogout);
+  };
+}, []);
+
+  const confirmSessionExpired = () => {
+    setSessionExpired(false);
+    setToken(null);
+    setUser(null);
+    persistToken(null);
+  };
 
   /**
    * Performs user login by calling the authentication API.
@@ -113,6 +133,8 @@ export function AuthProvider({ children }) {
         isLoading: isLoading || isUserLoading,
         login,
         logout,
+        sessionExpired,
+        confirmSessionExpired,
       }}
     >
       {children}

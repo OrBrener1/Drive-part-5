@@ -2,6 +2,18 @@
 import React from "react";
 import "./userAvatarMenu.css";
 
+function normalizeImage(image) {
+  if (!image) return null;
+
+  // If already a data URI (web / native compatible)
+  if (image.startsWith("data:image")) {
+    return image;
+  }
+
+  // Base64 only → wrap as data URI
+  return `data:image/jpeg;base64,${image}`;
+}
+
 function getAvatarColor(letter) {
   const colors = [
     "#f44336", "#e91e63", "#9c27b0", "#3f51b5",
@@ -20,12 +32,15 @@ function getAvatarColor(letter) {
  */
 export default function UserAvatar({ user, className = "" }) {
   if (!user) return null;
+  
+  // Always normalize image before rendering
+  const imageSrc = normalizeImage(user.image);
 
   // 1. If user has an image
   if (user.image) {
     return (
       <img
-        src={user.image}
+        src={imageSrc}
         alt={user.displayName || "User"}
         className={`user-avatar ${className}`}
       />

@@ -32,9 +32,11 @@ function makeHttpError(message, status, body) {
 }
 
 /**
- * Wrapper around fetch that attaches Authorization header if JWT exists.
- * This is the central place to handle auth headers for all API calls.
- * All functions below should use this for making API requests.
+ * Centralized fetch wrapper (used by all functions that approach the NodeJS server).
+ * Attaches JWT automatically and handles 401 globally!
+ * Does that by clearing auth state and triggering logout flow.
+ * We removed throwing the error in other functions,
+ * if the server returns 401 it is caught and handled here.
  */
 export async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers || {}) };
@@ -43,20 +45,24 @@ export async function apiFetch(path, options = {}) {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-
-  return fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers,
   });
+
+  // Centralized auth failure handling
+  if (response.status === 401) {
+    setToken(null);      // remove from localStorage
+    window.dispatchEvent(new Event("auth-logout"));
+     return response;
+  }
+
+  return response;
 }
 
 // Files
 export async function getFiles() {
   const response = await apiFetch(API_ENDPOINTS.FILES);
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -71,10 +77,7 @@ export async function getFiles() {
 // Endpoint: GET /files?starred=true
 export async function getStarredFiles() {
     const response = await apiFetch(`${API_ENDPOINTS.FILES}?starred=true`);
-      
-    if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
+  
     if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw makeHttpError(body?.error || "STARRED_FILES_FETCH_FAILED", response.status, body);
@@ -86,10 +89,6 @@ export async function getStarredFiles() {
 // Endpoint: GET /files/shared
 export async function getSharedFiles() {
   const response = await apiFetch(API_ENDPOINTS.SHARED_FILES);
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -103,10 +102,6 @@ export async function getSharedFiles() {
 // Endpoint: GET /files/recent
 export async function getRecentFiles() {
   const response = await apiFetch(API_ENDPOINTS.RECENT_FILES);
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -123,10 +118,6 @@ export async function toggleStar(itemId) {
     method: "PATCH",
   });
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw makeHttpError(body?.error || "TOGGLE_STAR_FAILED", response.status, body);
@@ -139,10 +130,6 @@ export async function toggleStar(itemId) {
 // Endpoint: GET /files/bin
 export async function getBinFiles() {
   const response = await apiFetch(`${API_ENDPOINTS.FILES}/bin`);
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -157,16 +144,11 @@ export async function getBinFiles() {
 }
 
 // Bin actions
-
 // Move file/folder to Bin
 export async function moveFileToBin(fileId) {
   const response = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}/bin`, {
     method: "PATCH",
   });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -186,10 +168,6 @@ export async function restoreFileFromBin(fileId) {
     method: "PATCH",
   });
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw makeHttpError(
@@ -207,10 +185,6 @@ export async function deleteFileForever(fileId) {
   const response = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}`, {
     method: "DELETE",
   });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -238,10 +212,6 @@ export async function moveFile(fileId, targetParentId) {
     }),
   });
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw makeHttpError(
@@ -265,10 +235,6 @@ export async function getMoveFolders(parentId = null) {
     { method: "GET" }
   );
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw makeHttpError(
@@ -287,10 +253,6 @@ export async function getFileById(fileId) {
   const response = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}`, {
     method: "GET",
   });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -316,10 +278,6 @@ export async function patchFileById(fileId, content) {
     body: JSON.stringify({ content }),
   });
 
-  if (response.status === 401) {
-    throw new Error("UNAUTHORIZED");
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body?.error || "UPDATE_FILE_FAILED");
@@ -340,10 +298,6 @@ export async function updateFile(fileId, payload) {
     },
     body: JSON.stringify(payload),
   });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -369,10 +323,6 @@ export async function uploadFile(file, parentId = null) {
     body: formData,
   });
 
-  if (response.status === 401) {
-    throw new Error("UNAUTHORIZED");
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body?.error || "UPLOAD_FAILED");
@@ -396,10 +346,6 @@ export async function replaceFile(fileId, file) {
     }
   );
 
-  if (response.status === 401) {
-    throw new Error("UNAUTHORIZED");
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body?.error || "REPLACE_FILE_FAILED");
@@ -407,8 +353,6 @@ export async function replaceFile(fileId, file) {
 
   return true;
 }
-
-
 
 // Search
 // Endpoint: GET /search/:query
@@ -423,10 +367,6 @@ export async function searchFiles(query) {
     `${API_ENDPOINTS.SEARCH}/${encodeURIComponent(q)}`,
     { method: "GET" }
   );
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -453,10 +393,6 @@ export async function createItem({ name, type, parentId, content }) {
     }),
   });
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
 
@@ -477,10 +413,6 @@ export async function createItem({ name, type, parentId, content }) {
 export async function fetchCurrentUser() {
   const response = await apiFetch(API_ENDPOINTS.CURRENT_USER);
 
-  if (response.status === 401) {
-    throw new Error('UNAUTHORIZED');
-  }
-
   if (!response.ok) {
     throw new Error('FETCH_CURRENT_USER_FAILED');
   }
@@ -492,10 +424,6 @@ export async function fetchCurrentUser() {
 // Endpoint: GET /users/me/theme
 export async function getThemePreference() {
   const response = await apiFetch(`${API_ENDPOINTS.CURRENT_USER}/theme`);
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -515,10 +443,6 @@ export async function setThemePreference(theme) {
     body: JSON.stringify({ theme }),
   });
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw makeHttpError(body?.error || "THEME_UPDATE_FAILED", response.status, body);
@@ -535,10 +459,6 @@ export async function setThemePreference(theme) {
 // 1. Get List
 export async function getPermissions(fileId) {
   const response = await apiFetch(API_ENDPOINTS.PERMISSIONS(fileId));
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -557,10 +477,6 @@ export async function addPermission(fileId, email, type) {
     },
     body: JSON.stringify({ email, type }),
   });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -584,10 +500,6 @@ export async function updatePermission(fileId, permissionId, newType) {
     body: JSON.stringify({ type: newType }),
   });
 
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
-
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw makeHttpError(body?.error || "UPDATE_PERMISSION_FAILED", response.status, body);
@@ -603,10 +515,6 @@ export async function removePermission(fileId, permissionId) {
   const response = await apiFetch(url, {
     method: "DELETE",
   });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -626,10 +534,6 @@ export async function downloadFileRaw(fileId) {
   const response = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}/raw`, {
     method: "GET",
   });
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
-  }
 
   if (!response.ok) {
     const body = await response.text().catch(() => null);

@@ -1,9 +1,9 @@
 import { useCallback, useContext, useState } from "react";
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -18,13 +18,14 @@ import FileList from "../../components/files/FileList";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
 import LoadingState from "../../components/common/LoadingState";
+import Screen from "../../components/layout/Screen";
 import CreateOverlay from "../../components/create/CreateOverlay";
 
 export default function FilesScreen({ parentId = null }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useFiles(parentId);
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
@@ -32,29 +33,21 @@ export default function FilesScreen({ parentId = null }) {
   const router = useRouter();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);
   const listData = query.trim() ? search.results : files;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: 16,
-      }}
+    <Screen
+      style={{ backgroundColor: colors.background }}
+      contentStyle={{ paddingBottom: 96 }}
     >
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
@@ -97,13 +90,13 @@ export default function FilesScreen({ parentId = null }) {
               router.push(`/private/file/${item.id}`);
             }
           }}
+          onMove={(item) => router.push(`/private/move/${item.id}`)}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
           currentUserId={user?.id}
           onRenameSuccess={() => loadFiles()}
-          onUnauthorized={logout}
         />
       )}
       <PermissionsModal
@@ -114,10 +107,9 @@ export default function FilesScreen({ parentId = null }) {
       <CreateOverlay
         parentId={parentId}
         onRefresh={loadFiles}
-        onUnauthorized={logout}
         onCreated={() => setQuery("")}
       />
       <CreateFab onPress={openMenu} />
-    </View>
+    </Screen>
   );
 }

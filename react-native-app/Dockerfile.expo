@@ -1,0 +1,30 @@
+FROM node:20
+
+WORKDIR /app
+
+# Install adb (Android platform-tools)
+RUN apt-get update && apt-get install -y curl unzip \
+  && mkdir -p /opt/android-sdk \
+  && curl -sSLo /tmp/platform-tools.zip https://dl.google.com/android/repository/platform-tools-latest-linux.zip \
+  && unzip -q /tmp/platform-tools.zip -d /opt/android-sdk \
+  && rm /tmp/platform-tools.zip
+
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV PATH=$PATH:/opt/android-sdk/platform-tools
+
+# Install deps first for better cache
+COPY package*.json ./
+RUN npm install
+
+# App source
+COPY . .
+
+# Expo/Metro ports
+EXPOSE 8081 19000 19001 19002 19006
+
+# Ensure devtools bind to all interfaces inside container
+ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+
+# Start Expo with tunnel for Windows reliability
+CMD ["npm", "start", "--", "--tunnel"]

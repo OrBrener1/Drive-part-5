@@ -1,0 +1,66 @@
+services:
+  cpp-server:
+    build:
+      context: ./cpp-server
+      dockerfile: Dockerfile.server_cpp
+    container_name: cpp-server
+    volumes:
+      - cpp_storage:/storage_file
+    command: ["./drive-server", "8080"]
+
+  nodejs-server:
+    build:
+      context: ./NodeJS-server
+      dockerfile: Dockerfile.NodeJS_server
+    container_name: nodejs-server
+    depends_on:
+      - cpp-server
+      - mongo
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./NodeJS-server/.env
+    environment:
+      SERVER_HOST: cpp-server
+      SERVER_PORT: 8080
+      MONGO_URI: mongodb://mongo:27017/drive
+
+  react-native:
+    build:
+      context: ./react-native-app
+      dockerfile: Dockerfile.expo
+    container_name: react-native
+    depends_on:
+      - nodejs-server
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+      - "19006:19006"
+    env_file:
+      - ./react-native-app/.env
+    environment:
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: "0.0.0.0"
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      ADB_SERVER_SOCKET: tcp:host.docker.internal:5037
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./react-native-app:/app
+      - /app/node_modules
+      - /app/.expo
+    stdin_open: true
+    tty: true
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  cpp_storage:
+  mongo_data:

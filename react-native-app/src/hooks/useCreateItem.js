@@ -8,7 +8,7 @@ import { getErrorMessage } from "../utils/errorMessages";
  * - Unicode-safe
  * - Minimal validation
  */
-export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
+export function useCreateItem({ onSuccess } = {}) {
   // "text" | "image" | "folder" | null
   const [type, setType] = useState(null);
 
@@ -103,11 +103,6 @@ export function useCreateItem({ onSuccess, onUnauthorized } = {}) {
       cancelCreate();
       onSuccess?.(created);
     } catch (err) {
-      if (err?.message === "UNAUTHORIZED" || err?.status === 401) {
-        onUnauthorized?.(err);
-        return;
-      }
-
       setCreateError(
         getErrorMessage(err, { fallback: "Failed to create item." })
       );

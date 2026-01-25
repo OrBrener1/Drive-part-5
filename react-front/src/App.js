@@ -1,7 +1,25 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import AppRouter from './router';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, AuthContext } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import SessionExpiredModal from "./components/sessionExpiredModal/SessionExpiredModal";
+
+function AppContent() {
+  const { sessionExpired, confirmSessionExpired } =
+    useContext(AuthContext);
+
+  return (
+    <>
+      <AppRouter />
+
+      {sessionExpired && (
+        <SessionExpiredModal
+          onConfirm={confirmSessionExpired}
+        />
+      )}
+    </>
+  );
+}
 
 function App() {
   return (
@@ -12,7 +30,7 @@ function App() {
     */
     <AuthProvider>
       <ThemeProvider>
-        <AppRouter />
+        <AppContent />
       </ThemeProvider>
     </AuthProvider>
   );

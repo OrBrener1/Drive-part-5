@@ -33,8 +33,6 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // ---------------------------
 
-//app.use('/api/users', require('./routes/users'));
-//app.use('/api/tokens', require('./routes/tokens'));
 app.use('/api/users', require('./mongoRoutes/users'));
 app.use('/api/tokens', require('./mongoRoutes/tokens'));
 app.use('/api/files', require('./mongoRoutes/files'));
@@ -49,10 +47,6 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-//check for connection
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
-});
 //check for connection
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });

@@ -1,7 +1,8 @@
 import { useContext } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { MaterialIcons } from "@expo/vector-icons";
+import { ThemeContext } from "../../theme/themeContext";
 import SideDrawer from "./SideDrawer";
 
 export default function NavMenu({ visible, onClose }) {

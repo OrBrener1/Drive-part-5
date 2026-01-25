@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { I18nManager, Pressable, Text, TextInput, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import UserMenu from "../userMenu/UserMenu";
 import NavMenu from "./NavMenu";
@@ -87,7 +87,7 @@ export default function TopBar({
             }}
           >
           <MaterialIcons
-            name={I18nManager.isRTL ? "arrow-back" : "arrow-forward"}
+            name="arrow-forward"
             size={20}
             color={colors.textSecondary}
           />

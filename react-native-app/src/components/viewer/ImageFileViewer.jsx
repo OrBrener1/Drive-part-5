@@ -1,7 +1,7 @@
 import { View, Image, StyleSheet, Pressable, Text, Alert } from "react-native";
 import { useContext, useMemo } from "react";
 import { AuthContext } from "../../context/AuthContext";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import * as DocumentPicker from "expo-document-picker";
 import { replaceImage } from "../../api/filesApi";
 import { useState } from "react";

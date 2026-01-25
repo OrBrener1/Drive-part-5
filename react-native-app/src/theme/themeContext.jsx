@@ -1,8 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import * as FileSystem from "expo-file-system";
-import { lightTheme, darkTheme } from "./Theme";
+import { lightTheme, darkTheme } from "./theme";
 import { AuthContext } from "../context/AuthContext";
-import { getThemePreference, setThemePreference } from "../api/apiClient";
+import { getThemePreference, setThemePreference } from "../api/usersApi";
 
 export const ThemeContext = createContext(null);
 

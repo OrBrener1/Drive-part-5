@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useBinFiles } from "../../hooks/useBinFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -19,23 +19,19 @@ import Screen from "../../components/layout/Screen";
 export default function BinScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const router = useRouter();
   const { files, status, error, loadFiles } = useBinFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
-  const { handleMoveToBin, handleRestoreFromBin, handleDeleteForever } = useFileActions({
-    loadFiles,
-    onUnauthorized: () => logout(),
-  });
+  const { handleMoveToBin, handleRestoreFromBin, handleDeleteForever } =
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);

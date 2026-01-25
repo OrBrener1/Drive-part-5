@@ -20,6 +20,9 @@ router.get('/recent', authService, filesController.getRecentFiles);
 // GET /api/files/bin
 router.get('/bin', authService, filesController.getBin);
 
+// GET /api/files/:id/descendants
+router.get('/:id/descendants', authService, filesController.getDescendants);
+
 // GET /api/files/:id/raw  (DOWNLOAD)
 router.get('/:id/raw', authService, filesRawController.getRawFile);
 

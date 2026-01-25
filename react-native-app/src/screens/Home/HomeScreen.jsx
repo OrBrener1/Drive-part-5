@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -23,7 +23,7 @@ import Screen from "../../components/layout/Screen";
 export default function HomeScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useRecentFiles();
   const { openMenu } = useCreateUI();
   const router = useRouter();
@@ -31,17 +31,12 @@ export default function HomeScreen() {
   const [query, setQuery] = useState("");
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);
@@ -101,8 +96,8 @@ export default function HomeScreen() {
             onToggleStar={handleToggleStar}
             onMoveToBin={handleMoveToBin}
             onRestoreFromBin={handleRestoreFromBin}
+            onMove={(moveItem) => router.push(`/private/move/${moveItem.id}`)}
             onRenameSuccess={handleRenameSuccess}
-            onUnauthorized={logout}
             currentUserId={user?.id}
           />
         ))
@@ -148,8 +143,8 @@ export default function HomeScreen() {
           files={listData}
           contentContainerStyle={{ paddingBottom: 96 }}
           onItemPress={handleItemPress}
+          onMove={(item) => router.push(`/private/move/${item.id}`)}
           onRenameSuccess={handleRenameSuccess}
-          onUnauthorized={logout}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
@@ -194,7 +189,7 @@ export default function HomeScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
-      <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
+      <CreateOverlay onRefresh={loadFiles} onCreated={() => setQuery("")} />
       <CreateFab onPress={openMenu} />
     </Screen>
   );

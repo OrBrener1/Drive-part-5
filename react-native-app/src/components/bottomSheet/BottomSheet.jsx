@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef } from "react";
 import { Modal, View, Pressable, Text, Dimensions, Animated } from "react-native";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { createStyles } from "./BottomSheet.styles";
 
 const { height } = Dimensions.get("window");

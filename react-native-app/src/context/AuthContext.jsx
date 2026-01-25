@@ -2,8 +2,8 @@
 
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import * as authApi from "../api/authApi";
-import { apiFetch, makeHttpError, setToken } from "../api/apiClient";
-import { API_ENDPOINTS } from "../api/apiEndpoints";
+import { makeHttpError, setAuthFailureHandler, setToken } from "../api/apiClient";
+import { fetchCurrentUser } from "../api/usersApi";
 import { getErrorMessage } from "../utils/errorMessages";
 
 export const AuthContext = createContext(null);
@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
   const [token, setAuthToken] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // Login flow
   const login = async (email, password) => {
@@ -26,25 +27,7 @@ export function AuthProvider({ children }) {
     setToken(token);
 
     // Fetch current user using the token
-    const res = await apiFetch(API_ENDPOINTS.CURRENT_USER);
-
-    // Token invalid / expired → force logout and stop flow
-    if (res.status === 401) {
-      logout();
-      return { ok: false, message: "Session expired" };
-    }
-
-    //Other server error
-    if (!res.ok) {
-      throw makeHttpError(
-        "FETCH_CURRENT_USER_FAILED",
-        res.status,
-        null
-      );
-    }
-
-    //Success: save user and finish login
-    const userData = await res.json();
+    const userData = await fetchCurrentUser();
     setUser(userData);
 
     return { ok: true };
@@ -67,6 +50,16 @@ export function AuthProvider({ children }) {
     setUser(null);
     setToken(null);
   };
+
+  const confirmSessionExpired = () => {
+    setSessionExpired(false);
+    logout();
+  };
+
+  useEffect(() => {
+    setAuthFailureHandler(() => setSessionExpired(true));
+    return () => setAuthFailureHandler(null);
+  }, []);
   
   // Register
   const register = async (email, password, displayName, image) => {
@@ -96,8 +89,10 @@ export function AuthProvider({ children }) {
       login,
       logout,
       register,
+      sessionExpired,
+      confirmSessionExpired,
     }),
-    [token, user, loading]
+    [token, user, loading, sessionExpired]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -72,14 +72,20 @@ function FilesList({
         },
       });
     }
-
+    
     const canMoveItem =
       !!onMove &&
       !isBinView &&
       (!ctxItem?.ownerId ||
         !currentUserId ||
-        Number(ctxItem.ownerId) === Number(currentUserId));
-
+        String(ctxItem.ownerId) === String(currentUserId));
+        
+        console.log("CAN MOVE?", {
+        ownerId: ctxItem?.ownerId,
+        currentUserId,
+        canMoveItem,
+      });
+        
     // Rename (non-bin only)
     if (!isBinView) {
       items.push({
@@ -161,6 +167,7 @@ function FilesList({
     onDeleteForever,
     closeCtx,
     onMove,
+    currentUserId
   ]);
 
   return (

@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, Text } from "react-native";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 
 export default function FilesEmptyState({
   title = "No files yet",

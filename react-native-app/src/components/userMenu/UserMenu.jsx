@@ -1,7 +1,7 @@
 import { useContext, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import Avatar from "../avatar/Avatar";
 import BottomSheet from "../bottomSheet/BottomSheet";

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { updateFileContent } from "../../api/filesApi";
 
 export default function TextFileViewer({ item }) {

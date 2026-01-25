@@ -1,7 +1,7 @@
 import { useContext, useMemo, useState } from "react";
 import { Alert, Modal, Platform, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import RenameModal from "./RenameModal";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";

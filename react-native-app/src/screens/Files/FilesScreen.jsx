@@ -3,7 +3,7 @@ import { Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";

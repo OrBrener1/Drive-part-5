@@ -24,6 +24,8 @@ router.get('/bin', authService, filesController.getBin);
 
 // GET /api/files/:id/raw  (DOWNLOAD)
 router.get('/:id/raw', authService, filesRawController.getRawFile);
+// GET /api/files/:id/raw-url (DOWNLOAD URL)
+router.get('/:id/raw-url', authService, filesRawController.getRawUrl);
 
 const multer = require("multer");
 const upload = multer();

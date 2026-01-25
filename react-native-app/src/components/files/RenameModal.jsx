@@ -1,6 +1,6 @@
 import { useEffect, useRef, useContext } from "react";
 import { Modal, View, Text, TextInput, Pressable } from "react-native";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { useRenameItem } from "../../hooks/useRenameItem";
 
 export default function RenameModal({

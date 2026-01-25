@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 
 export default function SessionExpiredModal({ visible, onConfirm }) {
   const { theme } = useContext(ThemeContext);

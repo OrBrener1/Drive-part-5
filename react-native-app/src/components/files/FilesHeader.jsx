@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { View, Text } from "react-native";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 
 export default function FilesHeader() {
   const { theme } = useContext(ThemeContext);

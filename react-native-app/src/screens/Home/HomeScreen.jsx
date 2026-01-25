@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -19,6 +19,7 @@ import { useCreateUI } from "../../context/CreateUIContext";
 import CreateFab from "../../components/files/CreateFab";
 import CreateOverlay from "../../components/create/CreateOverlay";
 import Screen from "../../components/layout/Screen";
+import { useViewMode } from "../../context/ViewModeContext";
 
 export default function HomeScreen() {
   const { theme } = useContext(ThemeContext);
@@ -29,6 +30,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { viewMode, toggleViewMode } = useViewMode();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({ loadFiles });
@@ -87,20 +89,20 @@ export default function HomeScreen() {
       {items.length === 0 ? (
         <Text style={{ color: colors.textSecondary }}>{emptyText}</Text>
       ) : (
-        items.map((item) => (
-          <FileRow
-            key={item.id}
-            item={item}
-            onPress={() => handleItemPress(item)}
-            onOpenPermissions={permissionsUI.openPermissions}
-            onToggleStar={handleToggleStar}
-            onMoveToBin={handleMoveToBin}
-            onRestoreFromBin={handleRestoreFromBin}
-            onMove={(moveItem) => router.push(`/private/move/${moveItem.id}`)}
-            onRenameSuccess={handleRenameSuccess}
-            currentUserId={user?.id}
-          />
-        ))
+        <FileList
+          files={items}
+          scrollEnabled={false}
+          viewMode={viewMode}
+          contentContainerStyle={{ paddingBottom: 0 }}
+          onItemPress={handleItemPress}
+          onOpenPermissions={permissionsUI.openPermissions}
+          onToggleStar={handleToggleStar}
+          onMoveToBin={handleMoveToBin}
+          onRestoreFromBin={handleRestoreFromBin}
+          onMove={(item) => router.push(`/private/move/${item.id}`)}
+          onRenameSuccess={handleRenameSuccess}
+          currentUserId={user?.id}
+        />
       )}
     </View>
   );
@@ -114,6 +116,9 @@ export default function HomeScreen() {
         query={query}
         onChangeQuery={setQuery}
         onPressSearch={() => router.push("/private/search")}
+        showViewToggle
+        viewMode={viewMode}
+        onToggleView={toggleViewMode}
       />
 
       {showSearch && search.status === "loading" && (
@@ -146,6 +151,7 @@ export default function HomeScreen() {
         <FileList
           files={listData}
           contentContainerStyle={{ paddingBottom: 96 }}
+          viewMode={viewMode}
           onItemPress={handleItemPress}
           onMove={(item) => router.push(`/private/move/${item.id}`)}
           onRenameSuccess={handleRenameSuccess}

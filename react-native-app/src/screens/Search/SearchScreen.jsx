@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Text } from "react-native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import Screen from "../../components/layout/Screen";
 import TopBar from "../../components/nav/TopBar";
@@ -13,6 +13,7 @@ import { getErrorMessage } from "../../utils/errorMessages";
 import { searchFiles } from "../../api/filesApi";
 import { useFileActions } from "../../hooks/useFileActions";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
+import { useViewMode } from "../../context/ViewModeContext";
 
 export default function SearchScreen() {
   const { theme } = useContext(ThemeContext);
@@ -21,6 +22,7 @@ export default function SearchScreen() {
   const router = useRouter();
 
   const [query, setQuery] = useState("");
+  const { viewMode, toggleViewMode } = useViewMode();
   const [results, setResults] = useState([]);
   const [status, setStatus] = useState("idle"); // idle | loading | success | empty | error
   const [error, setError] = useState(null);
@@ -76,6 +78,9 @@ export default function SearchScreen() {
         onBack={() => router.back()}
         enableSearchInput
         autoFocusSearch
+        showViewToggle
+        viewMode={viewMode}
+        onToggleView={toggleViewMode}
       />
 
       {status === "loading" && <LoadingState label="Searching..." />}
@@ -91,6 +96,7 @@ export default function SearchScreen() {
       {status === "success" && results.length > 0 && (
         <FileList
           files={results}
+          viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
               router.push(`/private/(tabs)/folder/${item.id}`);

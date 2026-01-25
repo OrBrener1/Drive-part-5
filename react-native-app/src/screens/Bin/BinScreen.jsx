@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useBinFiles } from "../../hooks/useBinFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -15,6 +15,7 @@ import PermissionsModal from "../../components/permissions/PermissionsModal";
 import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
 import Screen from "../../components/layout/Screen";
+import { useViewMode } from "../../context/ViewModeContext";
 
 export default function BinScreen() {
   const { theme } = useContext(ThemeContext);
@@ -24,6 +25,7 @@ export default function BinScreen() {
   const { files, status, error, loadFiles } = useBinFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { viewMode, toggleViewMode } = useViewMode();
 
   const { handleMoveToBin, handleRestoreFromBin, handleDeleteForever } =
     useFileActions({ loadFiles });
@@ -50,6 +52,9 @@ export default function BinScreen() {
         showNavMenu={false}
         onBack={() => router.back()}
         onPressSearch={() => router.push("/private/search")}
+        showViewToggle
+        viewMode={viewMode}
+        onToggleView={toggleViewMode}
       />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Bin
@@ -88,6 +93,7 @@ export default function BinScreen() {
       {status === "success" && listData.length > 0 && (
         <FileList
           files={listData}
+          viewMode={viewMode}
           onOpenPermissions={permissionsUI.openPermissions}
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}

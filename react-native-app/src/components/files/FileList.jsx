@@ -15,13 +15,23 @@ export default function FileList({
   currentUserId,
   contentContainerStyle,
   style,
+  viewMode = "list",
+  scrollEnabled = true,
 }) {
+  const isGrid = viewMode === "grid";
   return (
     <FlatList
+      key={isGrid ? "grid" : "list"}
       style={style}
       data={files}
       keyExtractor={(item) => item.id}
-      contentContainerStyle={contentContainerStyle}
+      numColumns={isGrid ? 2 : 1}
+      columnWrapperStyle={isGrid ? { justifyContent: "space-between" } : undefined}
+      scrollEnabled={scrollEnabled}
+      contentContainerStyle={[
+        contentContainerStyle,
+        isGrid ? { paddingHorizontal: 12 } : null,
+      ]}
       renderItem={({ item }) => (
         <FileRow
           item={item}
@@ -35,6 +45,7 @@ export default function FileList({
           onRenameSuccess={onRenameSuccess}
           listContext={listContext}
           currentUserId={currentUserId}
+          viewMode={viewMode}
         />
       )}
     />

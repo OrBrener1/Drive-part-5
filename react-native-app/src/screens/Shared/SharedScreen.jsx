@@ -13,11 +13,12 @@ import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import CreateFab from "../../components/files/CreateFab";
 import { useCreateUI } from "../../context/CreateUIContext";
 import CreateOverlay from "../../components/create/CreateOverlay";
 import Screen from "../../components/layout/Screen";
+import { useViewMode } from "../../context/ViewModeContext";
 
 export default function SharedScreen() {
   const { theme } = useContext(ThemeContext);
@@ -26,6 +27,7 @@ export default function SharedScreen() {
   const { files, status, error, loadFiles } = useSharedFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { viewMode, toggleViewMode } = useViewMode();
   const { openMenu } = useCreateUI();
   const router = useRouter();
 
@@ -52,6 +54,9 @@ export default function SharedScreen() {
         query={query}
         onChangeQuery={setQuery}
         onPressSearch={() => router.push("/private/search")}
+        showViewToggle
+        viewMode={viewMode}
+        onToggleView={toggleViewMode}
       />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Shared with me
@@ -90,6 +95,7 @@ export default function SharedScreen() {
       {status === "success" && listData.length > 0 && (
         <FileList
           files={listData}
+          viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
               router.push(`/private/(tabs)/folder/${item.id}`);

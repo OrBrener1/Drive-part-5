@@ -4,5 +4,8 @@
   "scripts": {
     "docker:start": "docker-compose up --build",
     "docker:start:open": "docker-compose up --build -d && timeout 5 && start http://localhost:3000"
+  },
+  "dependencies": {
+    "expo": "^54.0.32"
   }
 }

@@ -1,6 +1,6 @@
 import { TextInput, Text, View } from "react-native";
 import { useContext } from "react";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 
 export default function CreateItemInput({
   value,

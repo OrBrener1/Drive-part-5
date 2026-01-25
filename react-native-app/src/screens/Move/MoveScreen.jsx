@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Alert, I18nManager, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import Screen from "../../components/layout/Screen";
 import { getFileById, getStarredFiles, getDescendants } from "../../api/filesApi";

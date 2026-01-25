@@ -1,7 +1,7 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import Avatar from "../avatar/Avatar";
 import BottomSheet from "../bottomSheet/BottomSheet";
@@ -9,18 +9,24 @@ import { createStyles } from "./UserMenu.styles";
 
 export default function UserMenu({ visible, onClose }) {
   // Access global theme (colors, spacing, typography, radius)
-  const { theme } = useContext(ThemeContext);
+  const { theme, mode, toggleTheme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
   // Auth data and actions
   const { user, logout } = useContext(AuthContext);
   const router = useRouter();
+  const themeToggleEmoji = useMemo(
+    () => (mode === "dark" ? "🌞" : "🌙"),
+    [mode]
+  );
 
   return (
     <BottomSheet
       visible={visible}
       onClose={onClose}
       heightPercent={0.92}
+      titleLeft={themeToggleEmoji}
+      onLeftPress={toggleTheme}
       titleRight="Finished"      // Explicit close action
     >
       <View style={styles.container}>

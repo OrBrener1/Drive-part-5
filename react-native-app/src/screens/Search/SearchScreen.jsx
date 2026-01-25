@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Text } from "react-native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import Screen from "../../components/layout/Screen";
 import TopBar from "../../components/nav/TopBar";
@@ -74,6 +74,8 @@ export default function SearchScreen() {
         onChangeQuery={setQuery}
         showNavMenu={false}
         onBack={() => router.back()}
+        enableSearchInput
+        autoFocusSearch
       />
 
       {status === "loading" && <LoadingState label="Searching..." />}

@@ -13,7 +13,7 @@ import FilesEmptyState from "../../components/files/FilesEmptyState";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import CreateFab from "../../components/files/CreateFab";
 import { useCreateUI } from "../../context/CreateUIContext";
 import CreateOverlay from "../../components/create/CreateOverlay";
@@ -48,7 +48,11 @@ export default function SharedScreen() {
 
   return (
     <Screen style={{ backgroundColor: colors.background }}>
-      <TopBar query={query} onChangeQuery={setQuery} />
+      <TopBar
+        query={query}
+        onChangeQuery={setQuery}
+        onPressSearch={() => router.push("/private/search")}
+      />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Shared with me
       </Text>

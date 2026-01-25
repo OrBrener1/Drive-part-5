@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
-import { I18nManager, Pressable, TextInput, View } from "react-native";
+import { I18nManager, Pressable, Text, TextInput, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import UserMenu from "../userMenu/UserMenu";
 import NavMenu from "./NavMenu";
@@ -13,6 +13,9 @@ export default function TopBar({
   placeholder = "Search in Drive",
   showNavMenu = true,
   onBack,
+  onPressSearch,
+  enableSearchInput = false,
+  autoFocusSearch = false,
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -40,33 +43,69 @@ export default function TopBar({
         </Pressable>
         
         {/* Search */}
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: colors.surface,
-            borderRadius: 18,
-            paddingHorizontal: 12,
-            borderWidth: 1,
-            borderColor: colors.border,
-            marginHorizontal: 10,
-          }}
-        >
-          <MaterialIcons name="search" size={18} color={colors.textSecondary} />
-          <TextInput
-            value={query}
-            onChangeText={onChangeQuery}
-            placeholder={placeholder}
-            placeholderTextColor={colors.textSecondary}
+        {enableSearchInput ? (
+          <View
             style={{
               flex: 1,
-              paddingVertical: 8,
-              paddingHorizontal: 8,
-              color: colors.textPrimary,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.surface,
+              borderRadius: 18,
+              paddingHorizontal: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+              marginHorizontal: 10,
             }}
-          />
-        </View>
+          >
+            <Text style={{ fontSize: 16 }}>
+              {"\uD83D\uDD0D"}
+            </Text>
+            <TextInput
+              value={query}
+              onChangeText={onChangeQuery}
+              autoFocus={autoFocusSearch}
+              placeholder={placeholder}
+              placeholderTextColor={colors.textSecondary}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                paddingHorizontal: 8,
+                color: colors.textPrimary,
+              }}
+            />
+          </View>
+        ) : (
+          <Pressable
+            onPress={onPressSearch}
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.surface,
+              borderRadius: 18,
+              paddingHorizontal: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+              marginHorizontal: 10,
+              minHeight: 36,
+            }}
+          >
+            <Text style={{ fontSize: 16 }}>
+              {"\uD83D\uDD0D"}
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                paddingHorizontal: 8,
+                color: colors.textSecondary,
+              }}
+              numberOfLines={1}
+            >
+              {placeholder}
+            </Text>
+          </Pressable>
+        )}
 
         {onBack ? (
           <Pressable

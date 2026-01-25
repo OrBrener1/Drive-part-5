@@ -35,8 +35,17 @@ export function createStyles(theme) {
     },
 
     headerLeft: {
-      fontSize: typography.small,
+      fontSize: typography.body + 4,
       color: colors.textSecondary,
+    },
+
+    headerLeftButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.round,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: 8,
+      backgroundColor: colors.surface,
     },
 
     headerRight: {

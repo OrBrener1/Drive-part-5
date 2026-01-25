@@ -1,6 +1,6 @@
 import { Modal, View, Text } from "react-native";
 import { useContext } from "react";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 
 import CreateItemInput from "./CreateItemInput";
 import CreateItemActions from "./CreateItemActions";

@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useStarredFiles } from "../../hooks/useStarredFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -48,7 +48,11 @@ export default function StarredScreen() {
 
   return (
     <Screen style={{ backgroundColor: colors.background }}>
-      <TopBar query={query} onChangeQuery={setQuery} />
+      <TopBar
+        query={query}
+        onChangeQuery={setQuery}
+        onPressSearch={() => router.push("/private/search")}
+      />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Starred
       </Text>

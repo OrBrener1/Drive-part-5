@@ -3,7 +3,7 @@ import { Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -49,7 +49,11 @@ export default function FilesScreen({ parentId = null }) {
       style={{ backgroundColor: colors.background }}
       contentStyle={{ paddingBottom: 96 }}
     >
-      <TopBar query={query} onChangeQuery={setQuery} />
+      <TopBar
+        query={query}
+        onChangeQuery={setQuery}
+        onPressSearch={() => router.push("/private/search")}
+      />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         {parentId ? "Folder" : "My Drive"}
       </Text>

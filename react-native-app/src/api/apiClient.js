@@ -4,8 +4,8 @@ if (!BASE_URL) {
   throw new Error("API base URL is not defined in environment variables.");
 }
 
-// We chose to not use AsyncStorage to keep the tokens, 
-// so the user has to log in again after closing the app. 
+// We chose to not use AsyncStorage to keep the tokens,
+// so the user has to log in again after closing the app.
 let inMemoryToken = null;
 let authFailureHandler = null;
 
@@ -22,16 +22,12 @@ export function setAuthFailureHandler(handler) {
 }
 
 // Centralized error object
-function makeHttpError(message, status, body) {
+export function makeHttpError(message, status, body) {
   const err = new Error(message);
   err.status = status;
   err.body = body;
   return err;
 }
-
-// async function readErrorBody(response) {
-//   return response.json().catch(() => null);
-// }
 
 export async function apiFetch(path, options = {}) {
   const headers = { ...(options.headers || {}) };
@@ -40,38 +36,68 @@ export async function apiFetch(path, options = {}) {
 
   const token = getToken();
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
   }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  let response;
-
   try {
-    response = await fetch(`${BASE_URL}${path}`, {
+    const response = await fetch(`${BASE_URL}${path}`, {
       ...options,
       headers,
       signal: controller.signal,
     });
+
+    if (response.status === 401 && !skipAuthFailure) {
+      setToken(null);
+      authFailureHandler?.();
+    }
+
+    return response;
   } catch (err) {
     if (err?.name === "AbortError") {
       throw makeHttpError("NETWORK_TIMEOUT", 0, null);
     }
-    throw err;  
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  clearTimeout(timeoutId);
-
-// CENTRALIZED AUTH HANDLING
-  if (response.status === 401 && !skipAuthFailure) {
-    setToken(null);
-    authFailureHandler?.();
-    return response;
-  }
-
-  return response;
 }
 
+// Upload file (with multipart/form-data)
+export async function apiFetchMultipart(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  const timeoutMs = options.timeoutMs ?? 15000;
+  const skipAuthFailure = options.skipAuthFailure === true;
 
-export { makeHttpError };
+  const token = getToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+
+    if (response.status === 401 && !skipAuthFailure) {
+      setToken(null);
+      authFailureHandler?.();
+    }
+
+    return response;
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      throw makeHttpError("NETWORK_TIMEOUT", 0, null);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef } from "react";
 import { Modal, View, Pressable, Text, Dimensions, Animated } from "react-native";
-import { ThemeContext } from "../../theme/themeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { createStyles } from "./BottomSheet.styles";
 
 const { height } = Dimensions.get("window");
@@ -9,6 +9,7 @@ export default function BottomSheet({
   visible,
   onClose,
   titleLeft,
+  onLeftPress,
   titleRight = "Finished",
   heightPercent = 0.65,
   children,
@@ -48,7 +49,17 @@ export default function BottomSheet({
           >
             {/* Header row */}
             <View style={styles.header}>
-              <Text style={styles.headerLeft}>{titleLeft}</Text>
+              {titleLeft ? (
+                onLeftPress ? (
+                  <Pressable onPress={onLeftPress} style={styles.headerLeftButton}>
+                    <Text style={styles.headerLeft}>{titleLeft}</Text>
+                  </Pressable>
+                ) : (
+                  <Text style={styles.headerLeft}>{titleLeft}</Text>
+                )
+              ) : (
+                <View />
+              )}
   
               {/* Explicit close action */}
               <Pressable onPress={onClose}>

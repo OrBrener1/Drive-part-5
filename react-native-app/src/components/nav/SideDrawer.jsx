@@ -27,7 +27,7 @@ export default function SideDrawer({
             top: 0,
             bottom: 0,
             width: 280,
-            paddingTop: 24,
+            paddingTop: 0,
             paddingHorizontal: 16,
             ...(isLeft ? { left: 0 } : { right: 0 }),
             ...(contentStyle || {}),

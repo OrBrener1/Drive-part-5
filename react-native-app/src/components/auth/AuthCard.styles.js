@@ -11,6 +11,20 @@ export const createStyles = (colors, layout) => {
       alignItems: "center",
       paddingTop: height * 0.04,
     },
+    backgroundLayer: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
+    gradient: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
 
     logo: {
       width: width * 0.38,

@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
@@ -26,8 +26,9 @@ export default function HomeScreen() {
   const { colors } = theme;
   const { user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useRecentFiles();
-  const { openMenu } = useCreateUI();
+  const { openMenu, closeMenu, menuOpen } = useCreateUI();
   const router = useRouter();
+  const pathname = usePathname();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { viewMode, toggleViewMode } = useViewMode();
@@ -62,12 +63,15 @@ export default function HomeScreen() {
   const handleItemPress = useCallback(
     (item) => {
       if (item.type === "folder") {
-        router.push(`/private/(tabs)/folder/${item.id}`);
+        router.push({
+          pathname: "/private/(tabs)/folder/[id]",
+          params: { id: item.id, origin: pathname, parent: "" },
+        });
       } else {
         router.push(`/private/file/${item.id}`);
       }
     },
-    [router]
+    [pathname, router]
   );
 
   const handleRenameSuccess = useCallback(() => {
@@ -102,16 +106,14 @@ export default function HomeScreen() {
           onMove={(item) => router.push(`/private/move/${item.id}`)}
           onRenameSuccess={handleRenameSuccess}
           currentUserId={user?.id}
+          listContext="home"
         />
       )}
     </View>
   );
 
   return (
-    <Screen
-      style={{ backgroundColor: colors.background }}
-      contentStyle={{ paddingBottom: 96 }}
-    >
+    <Screen style={{ backgroundColor: colors.background }}>
       <TopBar
         query={query}
         onChangeQuery={setQuery}
@@ -160,6 +162,7 @@ export default function HomeScreen() {
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
           currentUserId={user?.id}
+          listContext="home"
         />
       )}
 
@@ -200,7 +203,10 @@ export default function HomeScreen() {
         onClose={permissionsUI.closePermissions}
       />
       <CreateOverlay onRefresh={loadFiles} onCreated={() => setQuery("")} />
-      <CreateFab onPress={openMenu} />
+      <CreateFab
+        onPress={() => (menuOpen ? closeMenu() : openMenu())}
+        active={menuOpen}
+      />
     </Screen>
   );
 }

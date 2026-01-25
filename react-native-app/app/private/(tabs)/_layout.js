@@ -2,8 +2,8 @@ import { useContext } from "react";
 import { Text } from "react-native";
 import { Tabs } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../../src/theme/themeContext";
-import { CreateUIProvider } from "../../../src/context/CreateUIContext";
+import { ThemeContext } from "../../../src/theme/themeContext.jsx";
+import { CreateUIProvider } from "../../../src/context/CreateUIContext.js";
 
 export default function TabsLayout() {
   const { theme } = useContext(ThemeContext);

@@ -436,6 +436,10 @@ const getFilesByParent = async (userId, parentId) => {
   if (!parent) return 'PARENT_NOT_FOUND';
   if (parent.type !== 'folder') return 'INVALID_PARENT';
   if (!(await canUserAccessFile(userId, parent, 'get'))) return 'NO_PERMISSION';
+  if (!(await binService.isItemOrAncestorInBin(userId, parent.id))) {
+    const nowIso = new Date().toISOString();
+    recentStore.touch(userId, parent.id, nowIso);
+  }
 
   const children = await filesRepository.getChildren(parentId);
 

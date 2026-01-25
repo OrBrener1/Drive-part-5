@@ -32,7 +32,14 @@ export function createStyles(theme) {
     placeholder: {
       flex: 1,
       justifyContent: "center",
-      opacity: 0.25,
+      opacity: 1,
+      width: "100%",
+      minHeight: 200,
+      alignItems: "center",
+    },
+    gif: {
+      width: 220,
+      height: 120,
     },
 
     /* Logout button pinned to bottom */

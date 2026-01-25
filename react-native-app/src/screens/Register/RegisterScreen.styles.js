@@ -93,4 +93,15 @@ export const createStyles = (colors) =>
       fontSize: ms(15),
       fontWeight: "600",
     },
+
+    footerText: {
+      color: colors.textSecondary,
+      fontSize: ms(13),
+    },
+
+    footerLink: {
+      color: colors.primary,
+      fontWeight: "600",
+      fontSize: ms(13),
+    },
   });

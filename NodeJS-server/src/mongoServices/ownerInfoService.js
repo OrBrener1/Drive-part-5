@@ -1,9 +1,16 @@
 const userService = require('./userService');
+const permissionService = require('./permissionService');
 
 // Enrich items with owner display info for the UI (Mongo)
 async function attachOwnerInfo(items, currentUserId) {
   return Promise.all(items.map(async item => {
     const owner = await userService.getUserById(item.ownerId);
+    const ownerId = String(item.ownerId);
+    const isShared =
+      ownerId !== String(currentUserId)
+        ? true
+        : (await permissionService.getFilePermissions(item.id))
+            .some(p => String(p.userId) !== ownerId);
 
     const ownerName = owner?.displayName || 'Unknown';
     const ownerEmail = owner?.email || '';
@@ -14,7 +21,8 @@ async function attachOwnerInfo(items, currentUserId) {
       ownerName,
       ownerEmail,
       ownerImage,
-      ownerLabel: String(item.ownerId) === String(currentUserId) ? 'me' : ownerName
+      ownerLabel: ownerId === String(currentUserId) ? 'me' : ownerName,
+      isShared
     };
   }));
 }

@@ -3,10 +3,10 @@
 import { Stack } from "expo-router";
 import { useContext } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AuthContext, AuthProvider } from "../src/context/AuthContext";
-import { ThemeProvider } from "../src/theme/themeContext";
-import { CreateUIProvider } from "../src/context/CreateUIContext";
-import { ViewModeProvider } from "../src/context/ViewModeContext";
+import { AuthContext, AuthProvider } from "../src/context/AuthContext.jsx";
+import { ThemeProvider } from "../src/theme/themeContext.jsx";
+import { CreateUIProvider } from "../src/context/CreateUIContext.js";
+import { ViewModeProvider } from "../src/context/ViewModeContext.jsx";
 import SessionExpiredModal from "../src/components/sessionExpiredModal/SessionExpiredModal";
 
 function SessionExpiredGate() {

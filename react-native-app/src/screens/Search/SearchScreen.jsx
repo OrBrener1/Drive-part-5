@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Text } from "react-native";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import Screen from "../../components/layout/Screen";
@@ -20,6 +20,7 @@ export default function SearchScreen() {
   const { colors } = theme;
   const { user } = useContext(AuthContext);
   const router = useRouter();
+  const pathname = usePathname();
 
   const [query, setQuery] = useState("");
   const { viewMode, toggleViewMode } = useViewMode();
@@ -99,7 +100,10 @@ export default function SearchScreen() {
           viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
-              router.push(`/private/(tabs)/folder/${item.id}`);
+              router.push({
+                pathname: "/private/(tabs)/folder/[id]",
+                params: { id: item.id, origin: pathname, parent: "" },
+              });
             } else {
               router.push(`/private/file/${item.id}`);
             }

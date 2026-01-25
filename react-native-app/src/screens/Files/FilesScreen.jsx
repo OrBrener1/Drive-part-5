@@ -1,6 +1,6 @@
 import { useCallback, useContext, useState } from "react";
 import { Text } from "react-native";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { ThemeContext } from "../../theme/themeContext";
@@ -22,7 +22,7 @@ import Screen from "../../components/layout/Screen";
 import CreateOverlay from "../../components/create/CreateOverlay";
 import { useViewMode } from "../../context/ViewModeContext";
 
-export default function FilesScreen({ parentId = null }) {
+export default function FilesScreen({ parentId = null, onBack, origin }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
@@ -31,8 +31,10 @@ export default function FilesScreen({ parentId = null }) {
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { viewMode, toggleViewMode } = useViewMode();
-  const { openMenu } = useCreateUI();
+  const { openMenu, closeMenu, menuOpen } = useCreateUI();
   const router = useRouter();
+  const pathname = usePathname();
+  const originPath = origin || pathname;
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({ loadFiles });
@@ -47,10 +49,7 @@ export default function FilesScreen({ parentId = null }) {
   const listData = query.trim() ? search.results : files;
 
   return (
-    <Screen
-      style={{ backgroundColor: colors.background }}
-      contentStyle={{ paddingBottom: 96 }}
-    >
+    <Screen style={{ backgroundColor: colors.background }}>
       <TopBar
         query={query}
         onChangeQuery={setQuery}
@@ -58,6 +57,7 @@ export default function FilesScreen({ parentId = null }) {
         showViewToggle
         viewMode={viewMode}
         onToggleView={toggleViewMode}
+        onBack={onBack ?? (parentId ? () => router.back() : undefined)}
       />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         {parentId ? "Folder" : "My Drive"}
@@ -95,7 +95,14 @@ export default function FilesScreen({ parentId = null }) {
           viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
-              router.push(`/private/(tabs)/folder/${item.id}`);
+              router.push({
+                pathname: "/private/(tabs)/folder/[id]",
+                params: {
+                  id: item.id,
+                  origin: originPath,
+                  parent: parentId ?? "",
+                },
+              });
             } else {
               router.push(`/private/file/${item.id}`);
             }
@@ -106,6 +113,7 @@ export default function FilesScreen({ parentId = null }) {
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
           currentUserId={user?.id}
+          listContext="my-drive"
           onRenameSuccess={() => loadFiles()}
         />
       )}
@@ -119,7 +127,10 @@ export default function FilesScreen({ parentId = null }) {
         onRefresh={loadFiles}
         onCreated={() => setQuery("")}
       />
-      <CreateFab onPress={openMenu} />
+      <CreateFab
+        onPress={() => (menuOpen ? closeMenu() : openMenu())}
+        active={menuOpen}
+      />
     </Screen>
   );
 }

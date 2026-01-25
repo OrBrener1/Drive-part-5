@@ -966,8 +966,9 @@ const moveItem = async (userId, sourceId, targetParentId) => {
     }
 
     // Prevent cycles
-    if (source.type === 'folder' &&
-        isDescendant(source.id, targetParentId)) {
+    const isTargetDescendant =
+      source.type === 'folder' && (await isDescendant(source.id, targetParentId));
+    if (isTargetDescendant) {
       return 'CYCLE';
     }
   }
@@ -979,6 +980,35 @@ const moveItem = async (userId, sourceId, targetParentId) => {
 
   await filesRepository.updateParentById(sourceId, targetParentId);
   return 'OK';
+};
+
+const getDescendantIdsForUser = async (userId, rootId) => {
+  const root = await filesRepository.getFileById(rootId);
+  if (!root) return 'NOT_FOUND';
+
+  if (String(root.ownerId) !== String(userId)) {
+    return 'NO_PERMISSION';
+  }
+
+  if (root.type !== 'folder') {
+    return [];
+  }
+
+  const descendants = [];
+  const stack = [rootId];
+
+  while (stack.length > 0) {
+    const currentId = stack.pop();
+    const children = await filesRepository.getChildren(currentId);
+    for (const child of children) {
+      descendants.push(child.id);
+      if (child.type === 'folder') {
+        stack.push(child.id);
+      }
+    }
+  }
+
+  return descendants;
 };
 
 
@@ -1004,5 +1034,6 @@ module.exports = {
   getBinForUser,
   isDescendant,
   moveItem,
-  getMoveFolders
+  getMoveFolders,
+  getDescendantIdsForUser
 };

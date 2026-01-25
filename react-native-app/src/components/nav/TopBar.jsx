@@ -85,7 +85,7 @@ export default function TopBar({
             }}
           >
           <MaterialIcons
-            name={I18nManager.isRTL ? "arrow-back" : "arrow-forward"}
+            name="arrow-forward"
             size={20}
             color={colors.textSecondary}
           />

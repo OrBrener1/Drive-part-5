@@ -9,7 +9,6 @@ export default function RenameModal({
   initialName,
   onClose,
   onSuccess,
-  onUnauthorized,
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -23,7 +22,6 @@ export default function RenameModal({
         onSuccess?.(newName);
         onClose?.();
       },
-      onUnauthorized,
     });
 
   useEffect(() => {

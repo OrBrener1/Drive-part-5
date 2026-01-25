@@ -28,6 +28,8 @@ export const lightTheme = {
     surface: "#ffffff",
     primary: "#5a86e8",
     primaryDisabled: "#9bb4ec",
+    onPrimary: "#ffffff",
+    overlay: "rgba(15, 23, 42, 0.35)",
 
     textPrimary: "#111827",
     textSecondary: "#555",
@@ -47,6 +49,8 @@ export const darkTheme = {
     surface: "#020617",
     primary: "#7aa2ff",
     primaryDisabled: "#475569",
+    onPrimary: "#0f172a",
+    overlay: "rgba(15, 23, 42, 0.6)",
 
     textPrimary: "#f8fafc",
     textSecondary: "#cbd5f5",

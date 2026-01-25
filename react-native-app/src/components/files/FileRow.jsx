@@ -15,8 +15,8 @@ export default function FileRow({
   onMoveToBin,
   onRestoreFromBin,
   onDeleteForever,
+  onMove,
   onRenameSuccess,
-  onUnauthorized,
   listContext = "default",
   currentUserId,
 }) {
@@ -112,6 +112,13 @@ export default function FileRow({
         onPress: () => setRenameOpen(true),
       });
     }
+    if (!isBinView && onMove) {
+      items.push({
+        key: "move",
+        label: "Move",
+        onPress: () => onMove(item),
+      });
+    }
     if (isBinView && onRestoreFromBin) {
       items.push({
         key: "restore",
@@ -139,6 +146,7 @@ export default function FileRow({
     item,
     onMoveToBin,
     onDeleteForever,
+    onMove,
     onOpenPermissions,
     onRestoreFromBin,
     onToggleStar,
@@ -240,7 +248,6 @@ export default function FileRow({
         visible={renameOpen}
         itemId={item?.id}
         initialName={item?.name}
-        onUnauthorized={onUnauthorized}
         onClose={() => setRenameOpen(false)}
         onSuccess={(newName) => {
           onRenameSuccess?.(item, newName);

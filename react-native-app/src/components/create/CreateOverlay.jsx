@@ -8,7 +8,6 @@ import CreateMenu from "./CreateMenu";
 export default function CreateOverlay({
   parentId = null,
   onRefresh,
-  onUnauthorized,
   onCreated,
 }) {
   const { menuOpen, closeMenu } = useCreateUI();
@@ -19,7 +18,6 @@ export default function CreateOverlay({
       onCreated?.(created);
       closeMenu();
     },
-    onUnauthorized,
   });
 
   async function pickAndUploadFile() {

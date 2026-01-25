@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { updateFileName } from "../api/filesApi";
 
-export function useRenameItem({ itemId, initialName, onSuccess, onUnauthorized }) {
+export function useRenameItem({ itemId, initialName, onSuccess }) {
   const [name, setName] = useState(initialName || "");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,11 +41,6 @@ export function useRenameItem({ itemId, initialName, onSuccess, onUnauthorized }
       await updateFileName(itemId, name.trim());
       onSuccess?.(name.trim());
     } catch (err) {
-      if (err?.message === "UNAUTHORIZED") {
-        onUnauthorized?.(err);
-        return;
-      }
-      if (onUnauthorized?.(err)) return;
       setError(err?.message || "Rename failed");
     } finally {
       setIsSubmitting(false);

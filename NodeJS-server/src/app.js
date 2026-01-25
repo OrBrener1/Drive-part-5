@@ -33,8 +33,6 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // ---------------------------
 
-//app.use('/api/users', require('./routes/users'));
-//app.use('/api/tokens', require('./routes/tokens'));
 app.use('/api/users', require('./mongoRoutes/users'));
 app.use('/api/tokens', require('./mongoRoutes/tokens'));
 app.use('/api/files', require('./mongoRoutes/files'));

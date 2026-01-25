@@ -19,23 +19,19 @@ import Screen from "../../components/layout/Screen";
 export default function BinScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const router = useRouter();
   const { files, status, error, loadFiles } = useBinFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
 
-  const { handleMoveToBin, handleRestoreFromBin, handleDeleteForever } = useFileActions({
-    loadFiles,
-    onUnauthorized: () => logout(),
-  });
+  const { handleMoveToBin, handleRestoreFromBin, handleDeleteForever } =
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);

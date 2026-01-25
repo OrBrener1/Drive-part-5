@@ -22,7 +22,7 @@ import CreateOverlay from "../../components/create/CreateOverlay";
 export default function StarredScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useStarredFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
@@ -30,17 +30,12 @@ export default function StarredScreen() {
   const router = useRouter();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);
@@ -98,8 +93,8 @@ export default function StarredScreen() {
               router.push(`/private/file/${item.id}`);
             }
           }}
+          onMove={(item) => router.push(`/private/move/${item.id}`)}
           onRenameSuccess={() => loadFiles()}
-          onUnauthorized={logout}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
@@ -113,7 +108,7 @@ export default function StarredScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
-      <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
+      <CreateOverlay onRefresh={loadFiles} />
       <CreateFab onPress={openMenu} />
     </Screen>
   );

@@ -25,7 +25,7 @@ export default function FilesScreen({ parentId = null }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useFiles(parentId);
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
@@ -33,17 +33,12 @@ export default function FilesScreen({ parentId = null }) {
   const router = useRouter();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);
@@ -95,13 +90,13 @@ export default function FilesScreen({ parentId = null }) {
               router.push(`/private/file/${item.id}`);
             }
           }}
+          onMove={(item) => router.push(`/private/move/${item.id}`)}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
           currentUserId={user?.id}
           onRenameSuccess={() => loadFiles()}
-          onUnauthorized={logout}
         />
       )}
       <PermissionsModal
@@ -112,7 +107,6 @@ export default function FilesScreen({ parentId = null }) {
       <CreateOverlay
         parentId={parentId}
         onRefresh={loadFiles}
-        onUnauthorized={logout}
         onCreated={() => setQuery("")}
       />
       <CreateFab onPress={openMenu} />

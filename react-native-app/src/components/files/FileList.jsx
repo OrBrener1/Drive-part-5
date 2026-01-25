@@ -9,8 +9,8 @@ export default function FileList({
   onMoveToBin,
   onRestoreFromBin,
   onDeleteForever,
+  onMove,
   onRenameSuccess,
-  onUnauthorized,
   listContext,
   currentUserId,
   contentContainerStyle,
@@ -31,8 +31,8 @@ export default function FileList({
           onMoveToBin={onMoveToBin}
           onRestoreFromBin={onRestoreFromBin}
           onDeleteForever={onDeleteForever}
+          onMove={onMove}
           onRenameSuccess={onRenameSuccess}
-          onUnauthorized={onUnauthorized}
           listContext={listContext}
           currentUserId={currentUserId}
         />

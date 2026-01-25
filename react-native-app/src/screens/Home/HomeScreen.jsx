@@ -22,7 +22,7 @@ import Screen from "../../components/layout/Screen";
 export default function HomeScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
-  const { logout, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { files, status, error, loadFiles } = useRecentFiles();
   const { openMenu } = useCreateUI();
   const router = useRouter();
@@ -30,17 +30,12 @@ export default function HomeScreen() {
   const [query, setQuery] = useState("");
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
-    useFileActions({
-      loadFiles,
-      onUnauthorized: () => logout(),
-    });
+    useFileActions({ loadFiles });
 
   useFocusEffect(
     useCallback(() => {
-      loadFiles().catch((e) => {
-        if (e?.message === "UNAUTHORIZED") logout();
-      });
-    }, [loadFiles, logout])
+      loadFiles().catch(() => {});
+    }, [loadFiles])
   );
 
   const search = useSearchFiles(query);
@@ -98,8 +93,8 @@ export default function HomeScreen() {
               router.push(`/private/file/${item.id}`);
             }
           }}
+          onMove={(item) => router.push(`/private/move/${item.id}`)}
           onRenameSuccess={() => loadFiles()}
-          onUnauthorized={logout}
           onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
@@ -112,7 +107,7 @@ export default function HomeScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
       />
-      <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
+      <CreateOverlay onRefresh={loadFiles} />
       <CreateFab onPress={openMenu} />
     </Screen>
   );

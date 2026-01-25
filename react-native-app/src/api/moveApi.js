@@ -1,4 +1,5 @@
-import { apiFetch } from "./apiClient";
+import { apiFetch, makeHttpError } from "./apiClient";
+import { API_ENDPOINTS } from "./apiEndpoints";
 
 /**
  * Move file or folder to a new parent.
@@ -33,4 +34,26 @@ export async function moveItemApi(itemId, targetParentId) {
 
   // Web API returns 204 No Content → same assumption here
   return true;
+}
+
+// Move folders picker
+// Endpoint: GET /folders
+// Query: ?parentId=<id | null>
+export async function getMoveFolders(parentId = null) {
+  const query = parentId ? `?parentId=${parentId}` : "";
+  const response = await apiFetch(
+    `${API_ENDPOINTS.MOVE_FOLDERS}${query}`,
+    { method: "GET" }
+  );
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw makeHttpError(
+      body?.error || "MOVE_FOLDERS_FETCH_FAILED",
+      response.status,
+      body
+    );
+  }
+
+  return response.json();
 }

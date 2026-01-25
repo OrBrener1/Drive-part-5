@@ -10,6 +10,7 @@ export async function login(email, password) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ email, password }),
+    skipAuthFailure: true,
   });
 
   if (!response.ok) {
@@ -34,6 +35,7 @@ export async function register(email, password, displayName, image) {
       displayName,
       image // Base64 string (or null)
     }),
+    skipAuthFailure: true,
   });
 
   if (!response.ok) {

@@ -3,6 +3,7 @@ import { Alert, I18nManager, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../theme/themeContext";
+import { AuthContext } from "../../context/AuthContext";
 import Screen from "../../components/layout/Screen";
 import { getFileById, getStarredFiles, getDescendants } from "../../api/filesApi";
 import { getMoveFolders } from "../../api/moveApi";
@@ -16,6 +17,7 @@ export default function MoveScreen() {
   const itemId = String(id || "");
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext);
   const { colors, spacing, typography, radius } = theme;
 
   const [item, setItem] = useState(null);
@@ -39,7 +41,10 @@ export default function MoveScreen() {
   const currentTargetId = breadcrumbs[breadcrumbs.length - 1]?.id ?? null;
   const isInvalidTarget =
     currentTargetId === itemId || descendantIds.has(currentTargetId);
-  const canMove = !isInvalidTarget;
+  const isLoadingLocations = status === "loading";
+  const isOwner =
+    item?.ownerId && user?.id && String(item.ownerId) === String(user.id);
+  const canMove = !isInvalidTarget && !isLoadingLocations && isOwner;
 
   const displayedFolders =
     activeTab === "starred" ? starredFolders : folders;
@@ -132,6 +137,10 @@ export default function MoveScreen() {
   const handleMove = async () => {
     try {
       const targetParentId = currentTargetId ?? null;
+      if (item?.parentId === targetParentId) {
+        Alert.alert("Already in this location");
+        return;
+      }
       await moveItemApi(itemId, targetParentId);
       router.back();
     } catch (err) {
@@ -402,7 +411,11 @@ export default function MoveScreen() {
           <View style={{ flex: 1 }}>
             {displayedFolders.map((folder) => {
               const isDisabled =
-                folder.id === itemId || descendantIds.has(folder.id);
+                folder.id === itemId ||
+                descendantIds.has(folder.id) ||
+                (folder?.ownerId &&
+                  user?.id &&
+                  String(folder.ownerId) !== String(user.id));
 
               return (
                 <Pressable

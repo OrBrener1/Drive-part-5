@@ -8,9 +8,11 @@ import TopBar from "../../components/nav/TopBar";
 import FileList from "../../components/files/FileList";
 import FilesEmptyState from "../../components/files/FilesEmptyState";
 import LoadingState from "../../components/common/LoadingState";
+import PermissionsModal from "../../components/permissions/PermissionsModal";
 import { getErrorMessage } from "../../utils/errorMessages";
 import { searchFiles } from "../../api/filesApi";
 import { useFileActions } from "../../hooks/useFileActions";
+import { usePermissionsUI } from "../../hooks/usePermissionsUI";
 
 export default function SearchScreen() {
   const { theme } = useContext(ThemeContext);
@@ -22,6 +24,7 @@ export default function SearchScreen() {
   const [results, setResults] = useState([]);
   const [status, setStatus] = useState("idle"); // idle | loading | success | empty | error
   const [error, setError] = useState(null);
+  const permissionsUI = usePermissionsUI();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({ loadFiles: () => runSearch(query) });
@@ -94,13 +97,23 @@ export default function SearchScreen() {
             }
           }}
           onMove={(item) => router.push(`/private/move/${item.id}`)}
-          onOpenPermissions={() => {}}
+          onOpenPermissions={permissionsUI.openPermissions}
           onToggleStar={handleToggleStar}
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
           currentUserId={user?.id}
         />
       )}
+      <PermissionsModal
+        visible={permissionsUI.isPermOpen}
+        item={permissionsUI.permItem}
+        onClose={() => {
+          permissionsUI.closePermissions();
+          if (query.trim()) {
+            runSearch(query);
+          }
+        }}
+      />
     </Screen>
   );
 }

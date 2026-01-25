@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 
 export default function LoadingState({ label }) {
   const { theme } = useContext(ThemeContext);

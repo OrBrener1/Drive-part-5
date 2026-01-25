@@ -68,7 +68,6 @@ export async function apiFetch(path, options = {}) {
 // Upload file (with multipart/form-data)
 export async function apiFetchMultipart(path, options = {}) {
   const headers = { ...(options.headers || {}) };
-  const timeoutMs = options.timeoutMs ?? 15000;
   const skipAuthFailure = options.skipAuthFailure === true;
 
   const token = getToken();
@@ -76,14 +75,10 @@ export async function apiFetchMultipart(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
     const response = await fetch(`${BASE_URL}${path}`, {
       ...options,
       headers,
-      signal: controller.signal,
     });
 
     if (response.status === 401 && !skipAuthFailure) {
@@ -93,11 +88,6 @@ export async function apiFetchMultipart(path, options = {}) {
 
     return response;
   } catch (err) {
-    if (err?.name === "AbortError") {
-      throw makeHttpError("NETWORK_TIMEOUT", 0, null);
-    }
     throw err;
-  } finally {
-    clearTimeout(timeoutId);
   }
 }

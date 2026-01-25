@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -15,6 +15,7 @@ import PermissionsModal from "../../components/permissions/PermissionsModal";
 import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
 import Screen from "../../components/layout/Screen";
+import { useViewMode } from "../../context/ViewModeContext";
 
 export default function RecentScreen() {
   const { theme } = useContext(ThemeContext);
@@ -23,6 +24,7 @@ export default function RecentScreen() {
   const { files, status, error, loadFiles } = useRecentFiles();
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { viewMode, toggleViewMode } = useViewMode();
   const router = useRouter();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
@@ -55,6 +57,9 @@ export default function RecentScreen() {
         showNavMenu={false}
         onBack={() => router.back()}
         onPressSearch={() => router.push("/private/search")}
+        showViewToggle
+        viewMode={viewMode}
+        onToggleView={toggleViewMode}
       />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Recent
@@ -96,6 +101,7 @@ export default function RecentScreen() {
       {status === "success" && listData.length > 0 && (
         <FileList
           files={listData}
+          viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
               router.push(`/private/(tabs)/folder/${item.id}`);

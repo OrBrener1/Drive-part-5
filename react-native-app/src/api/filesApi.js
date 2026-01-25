@@ -1,11 +1,6 @@
-import { apiFetch } from "./apiClient";
+import { apiFetch, apiFetchMultipart } from "./apiClient";
 import { makeHttpError } from "./apiClient";
 import { API_ENDPOINTS } from "./apiEndpoints";
-
-async function apiFetchMultipart(path, options = {}) {
-  console.log("MULTIPART FETCH:", path);
-  return apiFetch(path, options);
-}
 
 // Create file / folder
 // Endpoint: POST /files
@@ -39,18 +34,22 @@ export async function createItem({ name, type, parentId, content }) {
 // Upload file (with multipart/form-data)
 // Endpoint: POST /files/upload
 export async function uploadFile(file, parentId = null) {
+  if (!file?.uri) {
+    throw makeHttpError("INVALID_FILE", 400, null);
+  }
+
+  const rawName = file.name || "upload";
+  const mimeType = file.mimeType || file.type || "application/octet-stream";
+  const normalizedName = ensureNameHasExtension(rawName, mimeType);
+
   const formData = new FormData();
-
   const normalizedFile = {
-  uri: file.uri.startsWith("file://")
-    ? file.uri
-    : file.uri,
-  name: file.name || "image.jpg",
-  type: file.mimeType || file.type || "image/jpeg",
-};
+    uri: file.uri,
+    name: normalizedName,
+    type: mimeType,
+  };
 
-formData.append("file", normalizedFile);
-
+  formData.append("file", normalizedFile);
 
   if (parentId) {
     formData.append("parentId", parentId);
@@ -68,6 +67,31 @@ formData.append("file", normalizedFile);
 
   return { ok: true };
 
+}
+
+function ensureNameHasExtension(name, mimeType) {
+  if (/\.[A-Za-z0-9]+$/.test(name)) {
+    return name;
+  }
+  const ext = extensionForMime(mimeType);
+  return ext ? `${name}.${ext}` : name;
+}
+
+function extensionForMime(mimeType) {
+  switch (mimeType) {
+    case "image/png":
+      return "png";
+    case "image/jpeg":
+      return "jpg";
+    case "image/gif":
+      return "gif";
+    case "application/pdf":
+      return "pdf";
+    case "text/plain":
+      return "txt";
+    default:
+      return null;
+  }
 }
 // Replace image file (with multipart/form-data)
 // Endpoint: PUT /files/:id/replace
@@ -145,6 +169,22 @@ export async function downloadFileRaw(fileId) {
   }
 
   return res.blob();
+}
+
+// Get a browser-download URL (authorized)
+// Endpoint: GET /files/:id/raw-url
+export async function getDownloadUrl(fileId) {
+  const res = await apiFetch(API_ENDPOINTS.RAW_URL(fileId));
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => null);
+    throw makeHttpError("DOWNLOAD_URL_FAILED", res.status, body);
+  }
+
+  return res.json();
 }
 // Update file metadata/content
 // Endpoint: PATCH /files/:id

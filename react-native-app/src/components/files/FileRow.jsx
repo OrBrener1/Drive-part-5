@@ -1,11 +1,12 @@
 import { useContext, useMemo, useState } from "react";
-import { Alert, Modal, Platform, Pressable, Text, View } from "react-native";
+import { Alert, Linking, Modal, Platform, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import RenameModal from "./RenameModal";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { downloadFileRaw } from "../../api/filesApi";
+import { getDownloadUrl } from "../../api/filesApi";
+import { getToken } from "../../api/apiClient";
 
 export default function FileRow({
   item,
@@ -19,6 +20,7 @@ export default function FileRow({
   onRenameSuccess,
   listContext = "default",
   currentUserId,
+  viewMode = "list",
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -30,56 +32,120 @@ export default function FileRow({
   const isStarred = Boolean(item?.isStarred);
   const isShared = currentUserId && String(item?.ownerId) !== String(currentUserId);
   const isBinView = listContext === "bin";
+  const isGrid = viewMode === "grid";
 
   async function handleDownload() {
     try {
-      console.log("DOWNLOAD dirs", {
-        documentDirectory: FileSystem.documentDirectory,
-        cacheDirectory: FileSystem.cacheDirectory,
-      });
-      const fileName = String(item?.name || `file_${item?.id}`)
+      if (!FileSystem?.documentDirectory && !FileSystem?.cacheDirectory) {
+        const confirmed = await confirmBrowserDownload();
+        if (!confirmed) {
+          return;
+        }
+        const opened = await openRawInBrowser(item?.id);
+        if (!opened) {
+          throw new Error("FILESYSTEM_UNAVAILABLE_REBUILD_CLIENT");
+        }
+        return;
+      }
+      const choice = await askDownloadChoice();
+      if (choice === "cancel") {
+        return;
+      }
+      if (choice === "browser") {
+        const confirmed = await confirmBrowserDownload();
+        if (!confirmed) {
+          return;
+        }
+        const opened = await openRawInBrowser(item?.id);
+        if (!opened) {
+          throw new Error("BROWSER_OPEN_FAILED");
+        }
+        return;
+      }
+      const baseName = String(item?.name || `file_${item?.id}`)
         .replace(/[\\/:*?"<>|]/g, "_");
-      const blob = await downloadFileRaw(item?.id);
-      const dataUrl = await readBlobAsDataUrl(blob);
-      const base64 = dataUrl.split(",")[1] || "";
       let target = null;
 
       if (Platform.OS === "android") {
         const saf = FileSystem.StorageAccessFramework;
-        if (!saf?.requestDirectoryPermissionsAsync) {
-          throw new Error("STORAGE_PERMISSION_UNSUPPORTED");
+        if (saf?.requestDirectoryPermissionsAsync) {
+          const permission = await saf.requestDirectoryPermissionsAsync();
+          if (!permission.granted) {
+            throw new Error("STORAGE_PERMISSION_DENIED");
+          }
+          const tmp = await downloadToTemp(baseName, item?.id);
+          const headerMime = getHeaderMime(tmp?.headers);
+          const mimeType =
+            detectMimeFromName(baseName) ||
+            headerMime ||
+            inferMimeFromItem(item) ||
+            "application/octet-stream";
+          const finalName = ensureNameHasExtension(baseName, mimeType);
+          const fileUri = await saf.createFileAsync(
+            permission.directoryUri,
+            finalName,
+            mimeType
+          );
+          await FileSystem.copyAsync({ from: tmp.uri, to: fileUri });
+          await FileSystem.deleteAsync(tmp.uri, { idempotent: true });
+          target = fileUri;
+        } else {
+          const baseDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+          if (!baseDir) {
+            throw new Error("STORAGE_UNAVAILABLE");
+          }
+          const hasExt = /\.[A-Za-z0-9]+$/.test(baseName);
+          if (hasExt) {
+            target = `${baseDir}${baseName}`;
+            await downloadToPath(item?.id, target);
+          } else {
+            const tmpPath = `${baseDir}${Date.now()}_${baseName}`;
+            const res = await downloadToPath(item?.id, tmpPath);
+            const headerMime = getHeaderMime(res?.headers);
+            const mimeType =
+              detectMimeFromName(baseName) ||
+              headerMime ||
+              inferMimeFromItem(item) ||
+              "application/octet-stream";
+            const finalName = ensureNameHasExtension(baseName, mimeType);
+            target = `${baseDir}${finalName}`;
+            await FileSystem.moveAsync({ from: tmpPath, to: target });
+          }
         }
-        const permission = await saf.requestDirectoryPermissionsAsync();
-        if (!permission.granted) {
-          throw new Error("STORAGE_PERMISSION_DENIED");
-        }
-        const mimeType = detectMimeFromName(fileName);
-        target = await saf.createFileAsync(
-          permission.directoryUri,
-          fileName,
-          mimeType
-        );
-        await FileSystem.writeAsStringAsync(target, base64, {
-          encoding: "base64",
-        });
       } else {
-        const baseDir = FileSystem.documentDirectory;
+        const baseDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
         if (!baseDir) {
           throw new Error("STORAGE_UNAVAILABLE");
         }
-        target = `${baseDir}${fileName}`;
-        await FileSystem.writeAsStringAsync(target, base64, {
-          encoding: "base64",
-        });
+        const hasExt = /\.[A-Za-z0-9]+$/.test(baseName);
+        if (hasExt) {
+          target = `${baseDir}${baseName}`;
+          await downloadToPath(item?.id, target);
+        } else {
+          const tmpPath = `${baseDir}${Date.now()}_${baseName}`;
+          const res = await downloadToPath(item?.id, tmpPath);
+          const headerMime = getHeaderMime(res?.headers);
+          const mimeType =
+            detectMimeFromName(baseName) ||
+            headerMime ||
+            inferMimeFromItem(item) ||
+            "application/octet-stream";
+          const finalName = ensureNameHasExtension(baseName, mimeType);
+          target = `${baseDir}${finalName}`;
+          await FileSystem.moveAsync({ from: tmpPath, to: target });
+        }
       }
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(target);
-      } else {
-        Alert.alert("Downloaded", `Saved to ${target}`);
-      }
+      await showDownloadComplete(target);
     } catch (err) {
-      Alert.alert("Download failed", err?.message || "Could not download file");
+      const raw = String(err?.message || "");
+      const isFsMissing = raw === "FILESYSTEM_UNAVAILABLE_REBUILD_CLIENT";
+      Alert.alert(
+        "Download failed",
+        isFsMissing
+          ? "File system module is not loaded. Rebuild the Expo client or restart Expo Go."
+          : err?.message || "Could not download file"
+      );
     }
   }
 
@@ -164,44 +230,81 @@ export default function FileRow({
           marginBottom: 10,
           borderWidth: 1,
           borderColor: colors.border,
+          flex: isGrid ? 1 : undefined,
+          marginHorizontal: isGrid ? 6 : 0,
+          minHeight: isGrid ? 120 : undefined,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <Text style={{ fontSize: 20 }}>
-            {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
-          </Text>
-
-          <View style={{ flex: 1 }}>
+        {isGrid ? (
+          <View style={{ alignItems: "center", gap: 8 }}>
+            <Text style={{ fontSize: 24 }}>
+              {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
+            </Text>
+            <Text
+              style={{ color: colors.textPrimary, fontSize: 14, textAlign: "center" }}
+              numberOfLines={2}
+            >
+              {item?.name}
+            </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text
-                style={{ color: colors.textPrimary, fontSize: 15, flexShrink: 1 }}
-                numberOfLines={1}
-              >
-                {item?.name}
-              </Text>
               {isStarred && (
                 <MaterialIcons name="star" size={14} color="#f4c542" />
               )}
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
               {isShared && (
                 <MaterialIcons name="people" size={14} color={colors.textSecondary} />
               )}
             </View>
+            {menuItems.length > 0 && (
+              <Pressable
+                onPress={(event) => {
+                  event.stopPropagation?.();
+                  setMenuOpen(true);
+                }}
+                hitSlop={8}
+                style={{ position: "absolute", top: 6, right: 6 }}
+              >
+                <MaterialIcons name="more-vert" size={18} color={colors.textSecondary} />
+              </Pressable>
+            )}
           </View>
+        ) : (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Text style={{ fontSize: 20 }}>
+              {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
+            </Text>
 
-          {menuItems.length > 0 && (
-            <Pressable
-              onPress={(event) => {
-                event.stopPropagation?.();
-                setMenuOpen(true);
-              }}
-              hitSlop={8}
-            >
-              <MaterialIcons name="more-vert" size={20} color={colors.textSecondary} />
-            </Pressable>
-          )}
-        </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Text
+                  style={{ color: colors.textPrimary, fontSize: 15, flexShrink: 1 }}
+                  numberOfLines={1}
+                >
+                  {item?.name}
+                </Text>
+                {isStarred && (
+                  <MaterialIcons name="star" size={14} color="#f4c542" />
+                )}
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+                {isShared && (
+                  <MaterialIcons name="people" size={14} color={colors.textSecondary} />
+                )}
+              </View>
+            </View>
+
+            {menuItems.length > 0 && (
+              <Pressable
+                onPress={(event) => {
+                  event.stopPropagation?.();
+                  setMenuOpen(true);
+                }}
+                hitSlop={8}
+              >
+                <MaterialIcons name="more-vert" size={20} color={colors.textSecondary} />
+              </Pressable>
+            )}
+          </View>
+        )}
       </Pressable>
 
       <Modal
@@ -261,15 +364,6 @@ export default function FileRow({
   );
 }
 
-function readBlobAsDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("FILE_READ_FAILED"));
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.readAsDataURL(blob);
-  });
-}
-
 function detectMimeFromName(name) {
   const lower = String(name || "").toLowerCase();
   if (lower.endsWith(".png")) return "image/png";
@@ -278,4 +372,143 @@ function detectMimeFromName(name) {
   if (lower.endsWith(".pdf")) return "application/pdf";
   if (lower.endsWith(".txt")) return "text/plain";
   return "application/octet-stream";
+}
+
+async function openRawInBrowser(fileId) {
+  if (!fileId) return false;
+  try {
+    const data = await getDownloadUrl(fileId);
+    const url = data?.url;
+    if (!url) return false;
+    const canOpen = await Linking.canOpenURL(url);
+    if (!canOpen) return false;
+    await Linking.openURL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function askDownloadChoice() {
+  return new Promise((resolve) => {
+    Alert.alert(
+      "Download",
+      "Choose how you want to download this file.",
+      [
+        { text: "In app", onPress: () => resolve("app") },
+        { text: "In browser", onPress: () => resolve("browser") },
+        { text: "Cancel", style: "cancel", onPress: () => resolve("cancel") },
+      ],
+      { cancelable: true }
+    );
+  });
+}
+
+function confirmBrowserDownload() {
+  return new Promise((resolve) => {
+    Alert.alert(
+      "Download in browser",
+      "This will open your browser to download the file.",
+      [
+        { text: "Open", onPress: () => resolve(true) },
+        { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+      ],
+      { cancelable: true }
+    );
+  });
+}
+
+async function downloadToPath(fileId, targetPath) {
+  const token = getToken();
+  if (!token || !fileId) {
+    throw new Error("UNAUTHORIZED");
+  }
+  const baseUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (!baseUrl) {
+    throw new Error("API_BASE_URL_MISSING");
+  }
+  const url = `${baseUrl}/files/${fileId}/raw`;
+  const res = await FileSystem.downloadAsync(url, targetPath, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status !== 200) {
+    throw new Error(`DOWNLOAD_FAILED_${res.status}`);
+  }
+  return res;
+}
+
+async function downloadToTemp(fileName, fileId) {
+  const baseDir = FileSystem.cacheDirectory || FileSystem.documentDirectory;
+  if (!baseDir) {
+    throw new Error("STORAGE_UNAVAILABLE");
+  }
+  const tmpPath = `${baseDir}${Date.now()}_${fileName}`;
+  const res = await downloadToPath(fileId, tmpPath);
+  return { uri: res.uri, headers: res.headers || {} };
+}
+
+async function showDownloadComplete(targetPath) {
+  Alert.alert(
+    "Downloaded",
+    `Saved to ${targetPath}`,
+    [
+      {
+        text: "Open",
+        onPress: async () => {
+          await openDownloadedFile(targetPath);
+        },
+      },
+      { text: "OK", style: "cancel" },
+    ],
+    { cancelable: true }
+  );
+}
+
+async function openDownloadedFile(targetPath) {
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(targetPath);
+    return;
+  }
+  if (Platform.OS === "android") {
+    const contentUri = await FileSystem.getContentUriAsync(targetPath);
+    await Linking.openURL(contentUri);
+    return;
+  }
+  await Linking.openURL(targetPath);
+}
+
+function getHeaderMime(headers) {
+  if (!headers) return null;
+  return headers["Content-Type"] || headers["content-type"] || null;
+}
+
+function ensureNameHasExtension(name, mimeType) {
+  if (/\.[A-Za-z0-9]+$/.test(name)) {
+    return name;
+  }
+  const ext = extensionForMime(mimeType);
+  return ext ? `${name}.${ext}` : name;
+}
+
+function extensionForMime(mimeType) {
+  switch (mimeType) {
+    case "image/png":
+      return "png";
+    case "image/jpeg":
+      return "jpg";
+    case "image/gif":
+      return "gif";
+    case "application/pdf":
+      return "pdf";
+    case "text/plain":
+      return "txt";
+    default:
+      return null;
+  }
+}
+
+function inferMimeFromItem(item) {
+  if (item?.contentType === "image") return "image/jpeg";
+  if (item?.contentType === "text") return "text/plain";
+  return null;
 }

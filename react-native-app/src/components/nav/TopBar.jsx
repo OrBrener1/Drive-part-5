@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { I18nManager, Pressable, Text, TextInput, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import UserMenu from "../userMenu/UserMenu";
 import NavMenu from "./NavMenu";
@@ -16,6 +16,9 @@ export default function TopBar({
   onPressSearch,
   enableSearchInput = false,
   autoFocusSearch = false,
+  viewMode,
+  onToggleView,
+  showViewToggle = false,
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -106,6 +109,31 @@ export default function TopBar({
             </Text>
           </Pressable>
         )}
+
+        {showViewToggle ? (
+          <Pressable
+            onPress={onToggleView}
+            hitSlop={8}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              zIndex: 2,
+              marginRight: 8,
+            }}
+          >
+            <MaterialIcons
+              name={viewMode === "grid" ? "view-list" : "grid-view"}
+              size={20}
+              color={colors.textSecondary}
+            />
+          </Pressable>
+        ) : null}
 
         {onBack ? (
           <Pressable

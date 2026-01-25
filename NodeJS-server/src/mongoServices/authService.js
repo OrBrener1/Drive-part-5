@@ -15,19 +15,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
  */
 function authService(req, res, next) {
   const authHeader = req.headers.authorization;
+  const queryToken = req.query?.token || req.query?.access_token;
+  let token = null;
 
-  // Authorization header must exist
-  if (!authHeader) {
+  if (authHeader) {
+    // Expected format: "Bearer <token>"
+    const parts = authHeader.split(' ');
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+      return res.status(401).json({ error: 'invalid authorization format' });
+    }
+    token = parts[1];
+  } else if (queryToken) {
+    token = queryToken;
+  } else {
     return res.status(401).json({ error: 'token required' });
   }
-
-  // Expected format: "Bearer <token>"
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    return res.status(401).json({ error: 'invalid authorization format' });
-  }
-
-  const token = parts[1];
 
   try {
     // Verify token signature (and expiration if exists)

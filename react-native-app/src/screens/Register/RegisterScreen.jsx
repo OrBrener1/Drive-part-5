@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, Image,} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { createStyles } from "./RegisterScreen.styles";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import AuthCard from "../../components/auth/AuthCard";
 

@@ -1,4 +1,5 @@
 import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 import { uploadFile } from "../../api/filesApi";
 import { useCreateItem } from "../../hooks/useCreateItem";
 import { useCreateUI } from "../../context/CreateUIContext";
@@ -31,9 +32,17 @@ export default function CreateOverlay({
       if (result.canceled) return;
 
       const file = result.assets[0];
+      let uri = file.uri;
+
+      if (uri?.startsWith("content://") && FileSystem?.cacheDirectory) {
+        const safeName = String(file.name || "upload").replace(/[\\/:*?"<>|]/g, "_");
+        const localUri = `${FileSystem.cacheDirectory}${Date.now()}_${safeName}`;
+        await FileSystem.copyAsync({ from: uri, to: localUri });
+        uri = localUri;
+      }
 
       const uploadPayload = {
-        uri: file.uri,
+        uri,
         name: file.name,
         type: file.mimeType || "application/octet-stream",
       };

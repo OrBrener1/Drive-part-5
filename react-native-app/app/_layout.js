@@ -4,8 +4,9 @@ import { Stack } from "expo-router";
 import { useContext } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthContext, AuthProvider } from "../src/context/AuthContext";
-import { ThemeProvider } from "../src/Theme/themeContext";
+import { ThemeProvider } from "../src/theme/themeContext";
 import { CreateUIProvider } from "../src/context/CreateUIContext";
+import { ViewModeProvider } from "../src/context/ViewModeContext";
 import SessionExpiredModal from "../src/components/sessionExpiredModal/SessionExpiredModal";
 
 function SessionExpiredGate() {
@@ -24,12 +25,14 @@ export default function RootLayout() {
       <AuthProvider>
         <ThemeProvider>
           <CreateUIProvider>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            />
-            <SessionExpiredGate />
+            <ViewModeProvider>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                }}
+              />
+              <SessionExpiredGate />
+            </ViewModeProvider>
           </CreateUIProvider>
         </ThemeProvider>
       </AuthProvider>

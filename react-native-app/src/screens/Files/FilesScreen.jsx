@@ -3,7 +3,7 @@ import { Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFiles } from "../../hooks/useFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -20,6 +20,7 @@ import TopBar from "../../components/nav/TopBar";
 import LoadingState from "../../components/common/LoadingState";
 import Screen from "../../components/layout/Screen";
 import CreateOverlay from "../../components/create/CreateOverlay";
+import { useViewMode } from "../../context/ViewModeContext";
 
 export default function FilesScreen({ parentId = null }) {
   const { theme } = useContext(ThemeContext);
@@ -29,6 +30,7 @@ export default function FilesScreen({ parentId = null }) {
   const { files, status, error, loadFiles } = useFiles(parentId);
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
+  const { viewMode, toggleViewMode } = useViewMode();
   const { openMenu } = useCreateUI();
   const router = useRouter();
 
@@ -53,6 +55,9 @@ export default function FilesScreen({ parentId = null }) {
         query={query}
         onChangeQuery={setQuery}
         onPressSearch={() => router.push("/private/search")}
+        showViewToggle
+        viewMode={viewMode}
+        onToggleView={toggleViewMode}
       />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         {parentId ? "Folder" : "My Drive"}
@@ -87,6 +92,7 @@ export default function FilesScreen({ parentId = null }) {
         <FileList
           files={listData}
           contentContainerStyle={{ paddingBottom: 96 }}
+          viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
               router.push(`/private/(tabs)/folder/${item.id}`);

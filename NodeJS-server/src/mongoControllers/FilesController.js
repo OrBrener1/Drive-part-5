@@ -179,7 +179,8 @@ const uploadFile = async (req, res) => {
     return res.status(400).json({ error: 'Missing file' });
   }
 
-  const name = req.file.originalname || 'Untitled';
+  const name =
+    (req.body && req.body.filename) || req.file.originalname || 'Untitled';
   const content = req.file.buffer;
 
   const result = await filesService.createFile(

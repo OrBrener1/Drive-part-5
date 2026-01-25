@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
   REGISTER: "/users",
   FILES: "/files",
   UPLOAD_FILE: "/files/upload",
+  RAW_URL: (fileId) => `/files/${fileId}/raw-url`,
   SHARED_FILES: "/files/shared",
   RECENT_FILES: "/files/recent",
   SEARCH: "/search",

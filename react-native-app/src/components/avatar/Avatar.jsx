@@ -1,6 +1,6 @@
 import { useContext, useMemo } from "react";
 import { View, Text, Image } from "react-native";
-import { ThemeContext } from "../../Theme/themeContext";
+import { ThemeContext } from "../../theme/themeContext";
 
 // Generate a deterministic background color based on user identity
 function getAvatarColor(userId, colors) {

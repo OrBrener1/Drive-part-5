@@ -27,8 +27,5 @@ RUN cmake /app && make drive-server
 # Expose server port
 EXPOSE 8080
 
-# Expose server port
-EXPOSE 8080
-
 # Default command
 CMD ["./drive-server", "8080"]

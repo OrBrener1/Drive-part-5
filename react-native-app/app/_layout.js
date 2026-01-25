@@ -9,8 +9,8 @@ import { CreateUIProvider } from "../src/context/CreateUIContext";
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <ThemeProvider>
           <CreateUIProvider>
             <Stack
               screenOptions={{
@@ -18,8 +18,8 @@ export default function RootLayout() {
               }}
             />
           </CreateUIProvider>
-        </AuthProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

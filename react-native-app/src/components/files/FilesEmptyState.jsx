@@ -2,7 +2,10 @@ import { useContext } from "react";
 import { View, Text } from "react-native";
 import { ThemeContext } from "../../Theme/ThemeContext";
 
-export default function FilesEmptyState() {
+export default function FilesEmptyState({
+  title = "No files yet",
+  subtitle = "Create a file or folder to get started",
+}) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
@@ -21,7 +24,7 @@ export default function FilesEmptyState() {
           marginBottom: 6,
         }}
       >
-        No files yet
+        {title}
       </Text>
 
       <Text
@@ -30,7 +33,7 @@ export default function FilesEmptyState() {
           fontSize: 13,
         }}
       >
-        Create a file or folder to get started
+        {subtitle}
       </Text>
     </View>
   );

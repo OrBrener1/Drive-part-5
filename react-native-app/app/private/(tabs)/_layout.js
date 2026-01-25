@@ -1,6 +1,6 @@
 import { useContext } from "react";
+import { Text } from "react-native";
 import { Tabs } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../../src/Theme/ThemeContext";
 import { CreateUIProvider } from "../../../src/context/CreateUIContext";
 
@@ -19,6 +19,17 @@ export default function TabsLayout() {
             backgroundColor: colors.surface,
             borderTopColor: colors.border,
           },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            lineHeight: 12,
+            marginTop: 2,
+          },
+          tabBarIconStyle: {
+            marginTop: -2,
+          },
+          tabBarItemStyle: {
+            paddingVertical: 6,
+          },
         }}
       >
         <Tabs.Screen
@@ -26,7 +37,9 @@ export default function TabsLayout() {
           options={{
             title: "Home",
             tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="home" color={color} size={size} />
+              <Text style={{ fontSize: size, lineHeight: size + 2 }}>
+                🏠
+              </Text>
             ),
           }}
         />
@@ -35,7 +48,9 @@ export default function TabsLayout() {
           options={{
             title: "My Drive",
             tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="folder" color={color} size={size} />
+              <Text style={{ fontSize: size, lineHeight: size + 2 }}>
+                📁
+              </Text>
             ),
           }}
         />
@@ -44,7 +59,9 @@ export default function TabsLayout() {
           options={{
             title: "Shared",
             tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="people" color={color} size={size} />
+              <Text style={{ fontSize: size, lineHeight: size + 2 }}>
+                👥
+              </Text>
             ),
           }}
         />
@@ -53,7 +70,9 @@ export default function TabsLayout() {
           options={{
             title: "Starred",
             tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="star" color={color} size={size} />
+              <Text style={{ fontSize: size, lineHeight: size + 2 }}>
+                ⭐
+              </Text>
             ),
           }}
         />

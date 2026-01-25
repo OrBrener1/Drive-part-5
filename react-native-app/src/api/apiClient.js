@@ -83,6 +83,51 @@ export async function fetchCurrentUser() {
   return response.json();
 }
 
+// Theme preference (per user)
+// Endpoint: GET /users/me/theme
+export async function getThemePreference() {
+  const response = await apiFetch(`${API_ENDPOINTS.CURRENT_USER}/theme`);
+
+  if (response.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw makeHttpError(
+      body?.error || "THEME_FETCH_FAILED",
+      response.status,
+      body
+    );
+  }
+
+  return response.json();
+}
+
+// Endpoint: PUT /users/me/theme
+export async function setThemePreference(theme) {
+  const response = await apiFetch(`${API_ENDPOINTS.CURRENT_USER}/theme`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ theme }),
+  });
+
+  if (response.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw makeHttpError(
+      body?.error || "THEME_UPDATE_FAILED",
+      response.status,
+      body
+    );
+  }
+
+  return response.json().catch(() => ({}));
+}
+
 // Upload file (with multipart/form-data)
 export async function apiFetchMultipart(path, options = {}) {
   console.log("MULTIPART FETCH:", `${BASE_URL}${path}`);

@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { I18nManager, Pressable, TextInput, View } from "react-native";
+import { I18nManager, Pressable, Text, TextInput, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../Theme/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
@@ -53,7 +53,9 @@ export default function TopBar({
             marginHorizontal: 10,
           }}
         >
-          <MaterialIcons name="search" size={18} color={colors.textSecondary} />
+          <Text style={{ fontSize: 16 }}>
+            🔍
+          </Text>
           <TextInput
             value={query}
             onChangeText={onChangeQuery}

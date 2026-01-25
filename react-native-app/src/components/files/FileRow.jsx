@@ -26,6 +26,7 @@ export default function FileRow({
   const [renameOpen, setRenameOpen] = useState(false);
 
   const isFolder = item?.type === "folder";
+  const isImage = item?.contentType === "image";
   const isStarred = Boolean(item?.isStarred);
   const isShared = currentUserId && String(item?.ownerId) !== String(currentUserId);
   const isBinView = listContext === "bin";
@@ -158,20 +159,23 @@ export default function FileRow({
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <MaterialIcons
-            name={isFolder ? "folder" : "insert-drive-file"}
-            size={22}
-            color={colors.textSecondary}
-          />
+          <Text style={{ fontSize: 20 }}>
+            {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
+          </Text>
 
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.textPrimary, fontSize: 15 }} numberOfLines={1}>
-              {item?.name}
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text
+                style={{ color: colors.textPrimary, fontSize: 15, flexShrink: 1 }}
+                numberOfLines={1}
+              >
+                {item?.name}
+              </Text>
               {isStarred && (
-                <MaterialIcons name="star" size={14} color={colors.primary} />
+                <MaterialIcons name="star" size={14} color="#f4c542" />
               )}
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
               {isShared && (
                 <MaterialIcons name="people" size={14} color={colors.textSecondary} />
               )}

@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { ThemeContext } from "../../Theme/ThemeContext";
+import { ThemeContext } from "../../Theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
 import { usePermissionsUI } from "../../hooks/usePermissionsUI";
@@ -54,6 +54,7 @@ export default function RecentScreen() {
         onChangeQuery={setQuery}
         showNavMenu={false}
         onBack={() => router.back()}
+        onPressSearch={() => router.push("/private/search")}
       />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Recent

@@ -48,7 +48,11 @@ export default function SharedScreen() {
 
   return (
     <Screen style={{ backgroundColor: colors.background }}>
-      <TopBar query={query} onChangeQuery={setQuery} />
+      <TopBar
+        query={query}
+        onChangeQuery={setQuery}
+        onPressSearch={() => router.push("/private/search")}
+      />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Shared with me
       </Text>

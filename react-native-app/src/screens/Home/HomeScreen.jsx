@@ -110,7 +110,11 @@ export default function HomeScreen() {
       style={{ backgroundColor: colors.background }}
       contentStyle={{ paddingBottom: 96 }}
     >
-      <TopBar query={query} onChangeQuery={setQuery} />
+      <TopBar
+        query={query}
+        onChangeQuery={setQuery}
+        onPressSearch={() => router.push("/private/search")}
+      />
 
       {showSearch && search.status === "loading" && (
         <LoadingState label="Searching..." />

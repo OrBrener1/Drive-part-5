@@ -49,7 +49,11 @@ export default function FilesScreen({ parentId = null }) {
       style={{ backgroundColor: colors.background }}
       contentStyle={{ paddingBottom: 96 }}
     >
-      <TopBar query={query} onChangeQuery={setQuery} />
+      <TopBar
+        query={query}
+        onChangeQuery={setQuery}
+        onPressSearch={() => router.push("/private/search")}
+      />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         {parentId ? "Folder" : "My Drive"}
       </Text>

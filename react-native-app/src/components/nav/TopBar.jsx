@@ -13,6 +13,9 @@ export default function TopBar({
   placeholder = "Search in Drive",
   showNavMenu = true,
   onBack,
+  onPressSearch,
+  enableSearchInput = false,
+  autoFocusSearch = false,
 }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -40,35 +43,69 @@ export default function TopBar({
         </Pressable>
         
         {/* Search */}
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: colors.surface,
-            borderRadius: 18,
-            paddingHorizontal: 12,
-            borderWidth: 1,
-            borderColor: colors.border,
-            marginHorizontal: 10,
-          }}
-        >
-          <Text style={{ fontSize: 16 }}>
-            🔍
-          </Text>
-          <TextInput
-            value={query}
-            onChangeText={onChangeQuery}
-            placeholder={placeholder}
-            placeholderTextColor={colors.textSecondary}
+        {enableSearchInput ? (
+          <View
             style={{
               flex: 1,
-              paddingVertical: 8,
-              paddingHorizontal: 8,
-              color: colors.textPrimary,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.surface,
+              borderRadius: 18,
+              paddingHorizontal: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+              marginHorizontal: 10,
             }}
-          />
-        </View>
+          >
+            <Text style={{ fontSize: 16 }}>
+              {"\uD83D\uDD0D"}
+            </Text>
+            <TextInput
+              value={query}
+              onChangeText={onChangeQuery}
+              autoFocus={autoFocusSearch}
+              placeholder={placeholder}
+              placeholderTextColor={colors.textSecondary}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                paddingHorizontal: 8,
+                color: colors.textPrimary,
+              }}
+            />
+          </View>
+        ) : (
+          <Pressable
+            onPress={onPressSearch}
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.surface,
+              borderRadius: 18,
+              paddingHorizontal: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+              marginHorizontal: 10,
+              minHeight: 36,
+            }}
+          >
+            <Text style={{ fontSize: 16 }}>
+              {"\uD83D\uDD0D"}
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                paddingHorizontal: 8,
+                color: colors.textSecondary,
+              }}
+              numberOfLines={1}
+            >
+              {placeholder}
+            </Text>
+          </Pressable>
+        )}
 
         {onBack ? (
           <Pressable

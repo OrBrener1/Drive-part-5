@@ -74,6 +74,8 @@ export default function SearchScreen() {
         onChangeQuery={setQuery}
         showNavMenu={false}
         onBack={() => router.back()}
+        enableSearchInput
+        autoFocusSearch
       />
 
       {status === "loading" && <LoadingState label="Searching..." />}

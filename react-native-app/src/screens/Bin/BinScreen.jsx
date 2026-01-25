@@ -49,6 +49,7 @@ export default function BinScreen() {
         onChangeQuery={setQuery}
         showNavMenu={false}
         onBack={() => router.back()}
+        onPressSearch={() => router.push("/private/search")}
       />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Bin

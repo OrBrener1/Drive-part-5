@@ -6,7 +6,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { replaceImage } from "../../api/filesApi";
 import { useState } from "react";
 
-export default function ImageFileViewer({ item }) {
+export default function ImageFileViewer({ item, onRefresh }) {
   const { token } = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
@@ -33,8 +33,7 @@ export default function ImageFileViewer({ item }) {
       if (result.canceled) return;
 
       await replaceImage(item.id, result.assets[0]);
-
-      // Force reload of <Image />
+      await onRefresh?.();
       setRefreshKey((k) => k + 1);
     } catch (err) {
       Alert.alert("Replace failed", err.message);
@@ -80,7 +79,7 @@ const styles = StyleSheet.create({
   },
   replaceButton: {
     position: "absolute",
-    top: 16,
+    bottom: 24,
     right: 16,
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.15)",

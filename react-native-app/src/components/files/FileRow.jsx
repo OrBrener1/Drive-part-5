@@ -1,8 +1,11 @@
 import { useContext, useMemo, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Alert, Modal, Platform, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../theme/themeContext";
 import RenameModal from "./RenameModal";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { downloadFileRaw } from "../../api/filesApi";
 
 export default function FileRow({
   item,
@@ -11,6 +14,7 @@ export default function FileRow({
   onToggleStar,
   onMoveToBin,
   onRestoreFromBin,
+  onDeleteForever,
   onRenameSuccess,
   onUnauthorized,
   listContext = "default",
@@ -25,6 +29,58 @@ export default function FileRow({
   const isStarred = Boolean(item?.isStarred);
   const isShared = currentUserId && String(item?.ownerId) !== String(currentUserId);
   const isBinView = listContext === "bin";
+
+  async function handleDownload() {
+    try {
+      console.log("DOWNLOAD dirs", {
+        documentDirectory: FileSystem.documentDirectory,
+        cacheDirectory: FileSystem.cacheDirectory,
+      });
+      const fileName = String(item?.name || `file_${item?.id}`)
+        .replace(/[\\/:*?"<>|]/g, "_");
+      const blob = await downloadFileRaw(item?.id);
+      const dataUrl = await readBlobAsDataUrl(blob);
+      const base64 = dataUrl.split(",")[1] || "";
+      let target = null;
+
+      if (Platform.OS === "android") {
+        const saf = FileSystem.StorageAccessFramework;
+        if (!saf?.requestDirectoryPermissionsAsync) {
+          throw new Error("STORAGE_PERMISSION_UNSUPPORTED");
+        }
+        const permission = await saf.requestDirectoryPermissionsAsync();
+        if (!permission.granted) {
+          throw new Error("STORAGE_PERMISSION_DENIED");
+        }
+        const mimeType = detectMimeFromName(fileName);
+        target = await saf.createFileAsync(
+          permission.directoryUri,
+          fileName,
+          mimeType
+        );
+        await FileSystem.writeAsStringAsync(target, base64, {
+          encoding: "base64",
+        });
+      } else {
+        const baseDir = FileSystem.documentDirectory;
+        if (!baseDir) {
+          throw new Error("STORAGE_UNAVAILABLE");
+        }
+        target = `${baseDir}${fileName}`;
+        await FileSystem.writeAsStringAsync(target, base64, {
+          encoding: "base64",
+        });
+      }
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(target);
+      } else {
+        Alert.alert("Downloaded", `Saved to ${target}`);
+      }
+    } catch (err) {
+      Alert.alert("Download failed", err?.message || "Could not download file");
+    }
+  }
 
   const menuItems = useMemo(() => {
     const items = [];
@@ -42,6 +98,13 @@ export default function FileRow({
         onPress: () => onToggleStar(item),
       });
     }
+    if (!isBinView && item?.type === "file") {
+      items.push({
+        key: "download",
+        label: "Download",
+        onPress: handleDownload,
+      });
+    }
     if (!isBinView && onRenameSuccess) {
       items.push({
         key: "rename",
@@ -54,6 +117,13 @@ export default function FileRow({
         key: "restore",
         label: "Restore",
         onPress: () => onRestoreFromBin(item),
+      });
+    }
+    if (isBinView && onDeleteForever) {
+      items.push({
+        key: "delete_forever",
+        label: "Delete forever",
+        onPress: () => onDeleteForever(item),
       });
     } else if (!isBinView && onMoveToBin) {
       items.push({
@@ -68,6 +138,7 @@ export default function FileRow({
     isStarred,
     item,
     onMoveToBin,
+    onDeleteForever,
     onOpenPermissions,
     onRestoreFromBin,
     onToggleStar,
@@ -177,4 +248,23 @@ export default function FileRow({
       />
     </>
   );
+}
+
+function readBlobAsDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("FILE_READ_FAILED"));
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function detectMimeFromName(name) {
+  const lower = String(name || "").toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+  if (lower.endsWith(".gif")) return "image/gif";
+  if (lower.endsWith(".pdf")) return "application/pdf";
+  if (lower.endsWith(".txt")) return "text/plain";
+  return "application/octet-stream";
 }

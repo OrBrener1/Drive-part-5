@@ -40,6 +40,7 @@ const CODE_MESSAGES = {
   CREATE_ITEM_FAILED: "Couldn't create item.",
   MOVE_TO_BIN_FAILED: "Couldn't move item to bin.",
   RESTORE_FROM_BIN_FAILED: "Couldn't restore item.",
+  DELETE_FOREVER_FAILED: "Couldn't delete item.",
   TOGGLE_STAR_FAILED: "Couldn't update star.",
   PERMISSIONS_FETCH_FAILED: "Couldn't load permissions.",
   ADD_PERMISSION_FAILED: "Couldn't share item.",

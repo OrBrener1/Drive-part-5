@@ -8,6 +8,7 @@ export default function FileList({
   onToggleStar,
   onMoveToBin,
   onRestoreFromBin,
+  onDeleteForever,
   onRenameSuccess,
   onUnauthorized,
   listContext,
@@ -29,6 +30,7 @@ export default function FileList({
           onToggleStar={onToggleStar}
           onMoveToBin={onMoveToBin}
           onRestoreFromBin={onRestoreFromBin}
+          onDeleteForever={onDeleteForever}
           onRenameSuccess={onRenameSuccess}
           onUnauthorized={onUnauthorized}
           listContext={listContext}

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "../../theme/themeContext";
@@ -16,6 +16,7 @@ import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../../components/common/LoadingState";
 import { useCreateUI } from "../../context/CreateUIContext";
 import CreateFab from "../../components/files/CreateFab";
+import Screen from "../../components/layout/Screen";
 import CreateOverlay from "../../components/create/CreateOverlay";
 
 export default function StarredScreen() {
@@ -51,7 +52,7 @@ export default function StarredScreen() {
   }, [files, query, search.results]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
+    <Screen style={{ backgroundColor: colors.background }}>
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Starred
@@ -114,6 +115,6 @@ export default function StarredScreen() {
       />
       <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
       <CreateFab onPress={openMenu} />
-    </View>
+    </Screen>
   );
 }

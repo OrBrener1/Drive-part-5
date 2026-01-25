@@ -1,8 +1,11 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { View, Text, Alert } from "react-native";
-import FileViewer from "../../components/viewer/FileViewer";
+import { Text, Alert } from "react-native";
+import { router } from "expo-router";
+
 import { getFileById } from "../../api/filesApi";
+import FileViewer from "../../components/viewer/FileViewer";
+import Screen from "../../components/layout/Screen";
 
 export default function FileViewScreen() {
   const { id: fileId } = useLocalSearchParams();
@@ -10,26 +13,30 @@ export default function FileViewScreen() {
 
   console.log("FILE VIEW SCREEN RENDER", fileId);
 
-  useEffect(() => {
+  async function loadItem() {
     if (!fileId) return;
+    try {
+      const data = await getFileById(fileId);
+      setItem(data);
+    } catch {
+      Alert.alert(
+        "Cannot open file",
+        "File server is unavailable"
+      );
+    }
+  }
 
-    getFileById(fileId)
-      .then(setItem)
-      .catch(() => {
-        Alert.alert(
-          "Cannot open file",
-          "File server is unavailable"
-        );
-      });
+  useEffect(() => {
+    loadItem();
   }, [fileId]);
 
   if (!item) {
     return (
-      <View style={{ flex: 1, padding: 16 }}>
+      <Screen contentStyle={{ paddingTop: 16 }}>
         <Text>Loading...</Text>
-      </View>
+      </Screen>
     );
   }
 
-  return <FileViewer item={item} />;
+  return <FileViewer item={item} onRefresh={loadItem} />;
 }

@@ -76,40 +76,35 @@ formData.append("file", normalizedFile);
 // Replace image file (with multipart/form-data)
 // Endpoint: PUT /files/:id/replace
 export async function replaceImage(fileId, file) {
-  const formData = new FormData();
-
-  const normalizedFile = {
-  uri: file.uri.startsWith("file://")
-    ? file.uri
-    : file.uri,
-  name: file.name || "image.jpg",
-  type: file.mimeType || file.type || "image/jpeg",
-};
-
-formData.append("file", normalizedFile);
-
-  const response = await apiFetchMultipart(
-    `${API_ENDPOINTS.FILES}/${fileId}/replace`,
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
-
-  if (response.status === 401) {
-    throw makeHttpError("UNAUTHORIZED", 401, null);
+  if (!file?.uri) {
+    throw makeHttpError("INVALID_FILE", 400, null);
   }
 
+  const response = await fetch(file.uri);
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw makeHttpError(
-      body?.error || "REPLACE_IMAGE_FAILED",
-      response.status,
-      body
-    );
+    throw makeHttpError("FILE_READ_FAILED", response.status, null);
   }
 
-  return true;
+  const blob = await response.blob();
+  const mimeType = file.mimeType || file.type || "image/jpeg";
+  const dataUrl = await readBlobAsDataUrl(blob, mimeType);
+
+  return updateFileContent(fileId, dataUrl);
+}
+
+function readBlobAsDataUrl(blob, mimeType) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("FILE_READ_FAILED"));
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        return resolve(reader.result);
+      }
+      const prefix = `data:${mimeType};base64,`;
+      return resolve(prefix);
+    };
+    reader.readAsDataURL(blob);
+  });
 }
 
 
@@ -152,6 +147,21 @@ export async function getFileById(fileId) {
   return res.json();
 }
 
+// Download raw file bytes (protected)
+// Endpoint: GET /files/:id/raw
+export async function downloadFileRaw(fileId) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${fileId}/raw`);
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => null);
+    throw makeHttpError("DOWNLOAD_FAILED", res.status, body);
+  }
+
+  return res.blob();
+}
 // Update file metadata/content
 // Endpoint: PATCH /files/:id
 export async function updateFileContent(fileId, content) {
@@ -321,6 +331,22 @@ export async function restoreFileFromBin(itemId) {
   }
   if (!res.ok) {
     const { message, body } = await readErrorMessage(res, "RESTORE_FROM_BIN_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return true;
+}
+
+export async function deleteFileForever(itemId) {
+  const res = await apiFetch(`${API_ENDPOINTS.FILES}/${itemId}`, {
+    method: "DELETE",
+  });
+
+  if (res.status === 401) {
+    throw makeHttpError("UNAUTHORIZED", 401, null);
+  }
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "DELETE_FOREVER_FAILED");
     throw makeHttpError(message, res.status, body);
   }
 

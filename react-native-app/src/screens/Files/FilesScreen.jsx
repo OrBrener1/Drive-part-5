@@ -1,5 +1,5 @@
 import { useCallback, useContext, useState } from "react";
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -18,6 +18,7 @@ import FileList from "../../components/files/FileList";
 import PermissionsModal from "../../components/permissions/PermissionsModal";
 import TopBar from "../../components/nav/TopBar";
 import LoadingState from "../../components/common/LoadingState";
+import Screen from "../../components/layout/Screen";
 import CreateOverlay from "../../components/create/CreateOverlay";
 
 export default function FilesScreen({ parentId = null }) {
@@ -49,12 +50,9 @@ export default function FilesScreen({ parentId = null }) {
   const listData = query.trim() ? search.results : files;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: 16,
-      }}
+    <Screen
+      style={{ backgroundColor: colors.background }}
+      contentStyle={{ paddingBottom: 96 }}
     >
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
@@ -118,6 +116,6 @@ export default function FilesScreen({ parentId = null }) {
         onCreated={() => setQuery("")}
       />
       <CreateFab onPress={openMenu} />
-    </View>
+    </Screen>
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { AuthContext } from "../../context/AuthContext";
@@ -17,6 +17,7 @@ import { ThemeContext } from "../../theme/themeContext";
 import CreateFab from "../../components/files/CreateFab";
 import { useCreateUI } from "../../context/CreateUIContext";
 import CreateOverlay from "../../components/create/CreateOverlay";
+import Screen from "../../components/layout/Screen";
 
 export default function SharedScreen() {
   const { theme } = useContext(ThemeContext);
@@ -51,7 +52,7 @@ export default function SharedScreen() {
   }, [files, query, search.results]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
+    <Screen style={{ backgroundColor: colors.background }}>
       <TopBar query={query} onChangeQuery={setQuery} />
       <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
         Shared with me
@@ -113,6 +114,6 @@ export default function SharedScreen() {
       />
       <CreateOverlay onRefresh={loadFiles} onUnauthorized={logout} />
       <CreateFab onPress={openMenu} />
-    </View>
+    </Screen>
   );
 }

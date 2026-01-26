@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   RECENT_FILES: '/files/recent',
   SEARCH: '/search',
   CURRENT_USER: '/users/me',
+  CURRENT_USER_AVATAR: '/users/me/avatar',
   PERMISSIONS: (fileId) => `/files/${fileId}/permissions`,
   MOVE_FOLDERS: '/folders'
 };

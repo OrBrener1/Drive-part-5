@@ -452,6 +452,28 @@ export async function setThemePreference(theme) {
   return true;
 }
 
+// Endpoint: PUT /users/me/avatar
+export async function updateAvatar(image) {
+  const response = await apiFetch(API_ENDPOINTS.CURRENT_USER_AVATAR, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ image }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw makeHttpError(
+      body?.error || "AVATAR_UPDATE_FAILED",
+      response.status,
+      body
+    );
+  }
+
+  return response.json();
+}
+
 
 // Permissions
 // Endpoint: GET /files/:id/permissions

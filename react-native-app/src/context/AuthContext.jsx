@@ -3,7 +3,7 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import * as authApi from "../api/authApi";
 import { makeHttpError, setAuthFailureHandler, setToken } from "../api/apiClient";
-import { fetchCurrentUser } from "../api/usersApi";
+import { fetchCurrentUser, updateAvatar } from "../api/usersApi";
 import { getErrorMessage } from "../utils/errorMessages";
 
 export const AuthContext = createContext(null);
@@ -80,6 +80,23 @@ export function AuthProvider({ children }) {
   }
 };
 
+  // Update user avatar (base64 string or null)
+  const updateUserAvatar = async (image) => {
+    try {
+      const updatedUser = await updateAvatar(image);
+      setUser(updatedUser);
+      return { ok: true };
+    } catch (err) {
+      return {
+        ok: false,
+        message: getErrorMessage(err, {
+          context: "auth",
+          fallback: "Avatar update failed",
+        }),
+      };
+    }
+  };
+
   const value = useMemo(
     () => ({
       token,
@@ -89,6 +106,7 @@ export function AuthProvider({ children }) {
       login,
       logout,
       register,
+      updateUserAvatar,
       sessionExpired,
       confirmSessionExpired,
     }),

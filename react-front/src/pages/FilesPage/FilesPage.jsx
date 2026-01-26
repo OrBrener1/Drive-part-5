@@ -67,6 +67,7 @@ function FilesPage() {
     status: starredStatus,
     error: starredError,
     reload: reloadStarredFiles,
+    setFiles: setStarredFiles,
   } = useStarredFiles({ onUnauthorized: handleAuthErrors });
 
   const {
@@ -161,19 +162,57 @@ function FilesPage() {
     onUnauthorized: handleAuthErrors,
   });
 
-  const { toggle: toggleStar } = useToggleStar({
-    onSuccess: () => {
-      loadFiles();
-      reloadStarredFiles();
-      reloadSharedFiles();
-      reloadRecentFiles();
-      if (openedItem?.id) {
-        openItem(openedItem.id);
+  const getItemForStar = useCallback(
+    (itemId) => {
+      const pools = [
+        files,
+        starredFiles,
+        sharedFiles,
+        recentFiles,
+        binFiles,
+        searchResults || [],
+        openedItem ? [openedItem] : [],
+        openedItem?.children || [],
+      ];
+
+      for (const list of pools) {
+        const found = list.find((item) => item?.id === itemId);
+        if (found) return found;
       }
-      if (searchActive && lastQuery) {
-        safeSearch(lastQuery);
-      }
+
+      return null;
     },
+    [
+      files,
+      starredFiles,
+      sharedFiles,
+      recentFiles,
+      binFiles,
+      searchResults,
+      openedItem,
+    ]
+  );
+
+  const { toggle: toggleStar } = useToggleStar({
+    onOptimistic: (itemId) => {
+      const snapshot = [...starredFiles];
+      const isStarredNow = starredIds.has(itemId);
+
+      if (isStarredNow) {
+        setStarredFiles((prev) => prev.filter((item) => item.id !== itemId));
+      } else {
+        const item = getItemForStar(itemId);
+        if (item) {
+          setStarredFiles((prev) => {
+            if (prev.some((existing) => existing.id === itemId)) return prev;
+            return [...prev, { ...item, isStarred: true }];
+          });
+        }
+      }
+
+      return () => setStarredFiles(snapshot);
+    },
+    onSuccess: () => {},
   });
 
   // BIN ACTIONS

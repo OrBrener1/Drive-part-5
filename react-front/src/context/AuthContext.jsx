@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useEffect } from 'react';
 import { loginRequest } from '../api/authApi';
-import { fetchCurrentUser, setToken as persistToken } from '../api/apiClient';
+import { fetchCurrentUser, setToken as persistToken, updateAvatar } from '../api/apiClient';
 
 // Create a context object for authentication state
 export const AuthContext = createContext(null);
@@ -119,6 +119,16 @@ useEffect(() => {
     persistToken(null);
   };
 
+  const updateUserAvatar = async (image) => {
+    try {
+      const updatedUser = await updateAvatar(image);
+      setUser(updatedUser);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, message: err?.message || "Avatar update failed" };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -135,6 +145,7 @@ useEffect(() => {
         logout,
         sessionExpired,
         confirmSessionExpired,
+        updateUserAvatar,
       }}
     >
       {children}

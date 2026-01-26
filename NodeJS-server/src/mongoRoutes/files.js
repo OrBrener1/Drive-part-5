@@ -63,6 +63,7 @@ router.patch('/:id/restore', authService, filesController.restoreFromBin);
 // Permissions as sub-resource of files
 router.get('/:id/permissions', authService, permissionsController.getFilePermissions);
 router.post('/:id/permissions', authService, permissionsController.createPermission);
+router.post('/:id/permissions/deny', authService, permissionsController.denySelfAccess);
 router.patch('/:id/permissions/:pId', authService, permissionsController.updatePermission);
 router.delete('/:id/permissions/:pId', authService, permissionsController.deletePermission);
 

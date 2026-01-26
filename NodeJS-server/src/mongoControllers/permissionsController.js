@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const permissionService = require('../mongoServices/permissionService');
 const filesService = require('../services/filesService');
 const userService = require('../mongoServices/userService');
+const denyAccessService = require('../mongoServices/denyAccessService');
 
 const PERMISSION_HIERARCHY = {
   READ: 1,
@@ -96,6 +97,7 @@ async function createPermission(req, res) {
   try {
     // Create the permission in the store
     const p = await permissionService.createPermission(fileId, userId, type, metadata || {});
+    await filesService.clearDeniesForDescendants(userId, file);
 
     // 3. Return enriched object immediately
     const userObj = await userService.getUserById(userId);
@@ -135,6 +137,16 @@ async function getFilePermissions(req, res) {
 
   const perms = await permissionService.getFilePermissions(fileId);
 
+  // Build inherited permissions from ancestors (closest first)
+  const ancestors = [];
+  let currentId = file.parentId;
+  while (currentId) {
+    const parentResult = await filesService.getFileById(currentId, req.userId);
+    if (!parentResult || parentResult.status !== 'OK') break;
+    ancestors.push(parentResult.file);
+    currentId = parentResult.file.parentId;
+  }
+
   // Enrich each permission with user information (displayName/email)
   const enrichedPerms = await Promise.all(perms.map(async p => {
     const jsonPerm = p.toJSON ? p.toJSON() : p;
@@ -153,7 +165,48 @@ async function getFilePermissions(req, res) {
     };
   }));
 
-  return res.status(200).json(enrichedPerms);
+  const directUserIds = new Set(enrichedPerms.map(p => String(p.userId)));
+  const inheritedMap = new Map();
+
+  async function isDeniedOnPath(userId) {
+    if (await denyAccessService.hasDeny(userId, fileId)) return true;
+    for (const ancestor of ancestors) {
+      if (await denyAccessService.hasDeny(userId, ancestor.id)) return true;
+    }
+    return false;
+  }
+
+  for (const ancestor of ancestors) {
+    const ancestorPerms = await permissionService.getFilePermissions(ancestor.id);
+    for (const p of ancestorPerms) {
+      const jsonPerm = p.toJSON ? p.toJSON() : p;
+      const userId = String(jsonPerm.userId);
+      if (directUserIds.has(userId)) continue;
+      if (inheritedMap.has(userId)) continue;
+      if (await isDeniedOnPath(jsonPerm.userId)) continue;
+
+      const user = await userService.getUserById(jsonPerm.userId);
+      inheritedMap.set(userId, {
+        ...jsonPerm,
+        inherited: true,
+        inheritedFromId: ancestor.id,
+        inheritedFromName: ancestor.name,
+        user: user ? {
+          displayName: user.displayName,
+          email: user.email,
+          image: user.image
+        } : {
+          displayName: 'Unknown',
+          email: ''
+        }
+      });
+    }
+  }
+
+  return res.status(200).json([
+    ...enrichedPerms,
+    ...Array.from(inheritedMap.values())
+  ]);
 }
 
 /**
@@ -174,6 +227,7 @@ async function updatePermission(req, res) {
 
   try {
     const existing = await permissionService.getPermissionOrThrow(pId);
+    let file = null;
 
     // Validate that the permission actually belongs to this file
     if (existing.fileId !== fileId) {
@@ -183,7 +237,7 @@ async function updatePermission(req, res) {
     const isSelf = String(existing.userId) === String(req.userId);
 
     if (isSelf) {
-      const file = await ensureAccess(fileId, req.userId, 'get', res);
+      file = await ensureAccess(fileId, req.userId, 'get', res);
       if (!file) return;
 
       if (req.body && req.body.type) {
@@ -195,11 +249,14 @@ async function updatePermission(req, res) {
         }
       }
     } else {
-      const file = await ensureAccess(fileId, req.userId, 'delete', res);
+      file = await ensureAccess(fileId, req.userId, 'delete', res);
       if (!file) return;
     }
 
     const updated = await permissionService.updatePermission(pId, req.body || {});
+    if (file) {
+      await filesService.clearDeniesForDescendants(existing.userId, file);
+    }
     return res.status(200).json(updated.toJSON ? updated.toJSON() : updated);
   } catch (e) {
     return res.status(400).json({ error: e.message });
@@ -237,9 +294,31 @@ async function deletePermission(req, res) {
     }
 
     await permissionService.deletePermission(pId);
+    await denyAccessService.addDeny(existing.userId, fileId);
     return res.status(204).send();
   } catch (e) {
     return res.status(404).json({ error: e.message });
+  }
+}
+
+/**
+ * Add a deny entry for the current user on a file (used to block inherited access)
+ * Requires: READ access (so user can access the file before denying it)
+ */
+async function denySelfAccess(req, res) {
+  const fileId = req.params.id;
+  if (!isValidFileId(fileId)) {
+    return res.status(400).json({ error: 'Invalid file id' });
+  }
+
+  const file = await ensureAccess(fileId, req.userId, 'get', res);
+  if (!file) return;
+
+  try {
+    await denyAccessService.addDeny(req.userId, fileId);
+    return res.status(204).send();
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
   }
 }
 
@@ -247,5 +326,6 @@ module.exports = {
   createPermission,
   getFilePermissions,
   updatePermission,
-  deletePermission
+  deletePermission,
+  denySelfAccess
 };

@@ -16,6 +16,9 @@ router.get('/me/theme', authService, usersController.getThemePreference);
 // PUT /api/users/me/theme
 router.put('/me/theme', authService, usersController.setThemePreference);
 
+// PUT /api/users/me/avatar
+router.put('/me/avatar', authService, usersController.setAvatar);
+
 // GET /api/users/:id → get user (requires login so goes through requireAuth)
 router.get('/:id', authService, usersController.getUserById);
 

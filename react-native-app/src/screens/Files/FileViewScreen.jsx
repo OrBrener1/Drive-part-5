@@ -25,11 +25,13 @@ export default function FileViewScreen() {
     try {
       const data = await getFileById(fileId);
       setItem(data);
-    } catch {
-      Alert.alert(
-        "Cannot open file",
-        "File server is unavailable"
-      );
+    } catch (err) {
+      if (err?.status === 403) {
+        Alert.alert("Access denied", "You no longer have access to this file.");
+        router.back();
+        return;
+      }
+      Alert.alert("Cannot open file", "File server is unavailable");
     }
   }
 

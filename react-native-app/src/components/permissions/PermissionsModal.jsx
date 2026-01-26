@@ -13,6 +13,7 @@ import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import {
   addPermission,
+  denySelfAccess,
   getPermissions,
   removePermission,
   updatePermission,
@@ -252,7 +253,7 @@ export default function PermissionsModal({ visible, item, onClose, onAccessRevok
     }
   }
 
-  function handleRemove(permissionId, isSelf) {
+  function handleRemove(permissionId, isSelf, isInherited) {
     if (!itemId) return;
     Alert.alert(
       "Remove access",
@@ -264,7 +265,11 @@ export default function PermissionsModal({ visible, item, onClose, onAccessRevok
           style: "destructive",
           onPress: async () => {
             try {
-              await removePermission(itemId, permissionId);
+              if (isInherited && isSelf) {
+                await denySelfAccess(itemId);
+              } else {
+                await removePermission(itemId, permissionId);
+              }
               setPermissions((prev) =>
                 prev.filter((p) => (p.id || p._id) !== permissionId)
               );
@@ -436,6 +441,7 @@ export default function PermissionsModal({ visible, item, onClose, onAccessRevok
                 {displayPermissions.map((p) => {
                   const permId = p.id || p._id;
                   const isOwner = Boolean(p.isOwner) || String(p.userId) === ownerId;
+                  const isInherited = Boolean(p.inherited);
                   const currentUserId = currentUser?.id || currentUser?._id;
                   const isMeById = currentUserId
                     ? String(currentUserId) === String(p.userId)
@@ -484,12 +490,19 @@ export default function PermissionsModal({ visible, item, onClose, onAccessRevok
                         <RoleSelect
                           value={p.type}
                           onChange={(nextRole) => handleRoleChange(permId, nextRole)}
+                          disabled={isInherited}
                         />
                       )}
 
-                      {!isOwner && (
+                      {isInherited ? (
+                        <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                          Inherited{p.inheritedFromName ? ` · ${p.inheritedFromName}` : ""}
+                        </Text>
+                      ) : null}
+
+                      {!isOwner && (!isInherited || isMe) && (
                         <Pressable
-                          onPress={() => handleRemove(permId, isMe)}
+                          onPress={() => handleRemove(permId, isMe, isInherited)}
                           hitSlop={8}
                         >
                           <MaterialIcons name="close" size={18} color={colors.textSecondary} />

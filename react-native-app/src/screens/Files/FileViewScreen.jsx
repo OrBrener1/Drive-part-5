@@ -1,9 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text, Alert, Pressable, View } from "react-native";
-import { router } from "expo-router";
+import { Text, Alert, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MaterialIcons } from "@expo/vector-icons";
 
 import { getFileById } from "../../api/filesApi";
 import FileViewer from "../../components/viewer/FileViewer";
@@ -14,7 +12,6 @@ import { useContext } from "react";
 export default function FileViewScreen() {
   const { id: fileId } = useLocalSearchParams();
   const [item, setItem] = useState(null);
-  const insets = useSafeAreaInsets();
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
@@ -48,25 +45,6 @@ export default function FileViewScreen() {
   return (
     <View style={{ flex: 1 }}>
       <FileViewer item={item} onRefresh={loadItem} />
-      <Pressable
-        onPress={() => router.back()}
-        hitSlop={8}
-        style={{
-          position: "absolute",
-          top: insets.top + 12,
-          right: 16,
-          width: 36,
-          height: 36,
-          borderRadius: 18,
-          alignItems: "center",
-          justifyContent: "center",
-          borderWidth: 1,
-          borderColor: colors.border,
-          backgroundColor: colors.surface,
-        }}
-      >
-        <MaterialIcons name="arrow-forward" size={20} color={colors.textSecondary} />
-      </Pressable>
     </View>
   );
 }

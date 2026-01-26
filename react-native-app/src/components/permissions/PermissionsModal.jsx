@@ -13,6 +13,7 @@ import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import {
   addPermission,
+  denySelfAccess,
   getPermissions,
   removePermission,
   updatePermission,
@@ -113,7 +114,13 @@ function RoleSelect({ value, onChange, disabled }) {
   );
 }
 
-export default function PermissionsModal({ visible, item, onClose }) {
+export default function PermissionsModal({
+  visible,
+  item,
+  onClose,
+  onAccessRevoked,
+  onPermissionsUpdated,
+}) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { user: currentUser } = useContext(AuthContext);
@@ -214,6 +221,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
       setNewRole("READ");
       setNotice({ type: "success", message: "Access granted" });
       setStatus("success");
+      onPermissionsUpdated?.(itemId);
     } catch (err) {
       setNotice({
         type: "error",
@@ -236,6 +244,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
     try {
       await updatePermission(itemId, permissionId, nextRole);
       setNotice({ type: "success", message: "Permission updated" });
+      onPermissionsUpdated?.(itemId);
     } catch (err) {
       setNotice({
         type: "error",
@@ -252,7 +261,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
     }
   }
 
-  function handleRemove(permissionId) {
+  function handleRemove(permissionId, isSelf, isInherited) {
     if (!itemId) return;
     Alert.alert(
       "Remove access",
@@ -264,10 +273,21 @@ export default function PermissionsModal({ visible, item, onClose }) {
           style: "destructive",
           onPress: async () => {
             try {
-              await removePermission(itemId, permissionId);
+              if (isInherited && isSelf) {
+                await denySelfAccess(itemId);
+              } else {
+                await removePermission(itemId, permissionId);
+              }
               setPermissions((prev) =>
                 prev.filter((p) => (p.id || p._id) !== permissionId)
               );
+              if (isSelf) {
+                onPermissionsUpdated?.(itemId);
+                onAccessRevoked?.(itemId);
+                onClose?.();
+                return;
+              }
+              onPermissionsUpdated?.(itemId);
               setNotice({ type: "success", message: "Access removed" });
             } catch (err) {
               setNotice({
@@ -329,7 +349,11 @@ export default function PermissionsModal({ visible, item, onClose }) {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+        >
           <Text style={{ color: colors.textPrimary, fontSize: 14, fontWeight: "600" }}>
             Add people
           </Text>
@@ -427,9 +451,15 @@ export default function PermissionsModal({ visible, item, onClose }) {
                 {displayPermissions.map((p) => {
                   const permId = p.id || p._id;
                   const isOwner = Boolean(p.isOwner) || String(p.userId) === ownerId;
-                  const isMe = currentUser?.email && p.user?.email
+                  const isInherited = Boolean(p.inherited);
+                  const currentUserId = currentUser?.id || currentUser?._id;
+                  const isMeById = currentUserId
+                    ? String(currentUserId) === String(p.userId)
+                    : false;
+                  const isMeByEmail = currentUser?.email && p.user?.email
                     ? currentUser.email === p.user.email
                     : false;
+                  const isMe = isMeById || isMeByEmail;
                   const displayName = p.user?.displayName || "Unknown";
                   const displayEmail = p.user?.email || "";
                   const avatarUser = {
@@ -470,11 +500,21 @@ export default function PermissionsModal({ visible, item, onClose }) {
                         <RoleSelect
                           value={p.type}
                           onChange={(nextRole) => handleRoleChange(permId, nextRole)}
+                          disabled={isInherited}
                         />
                       )}
 
-                      {!isOwner && (
-                        <Pressable onPress={() => handleRemove(permId)} hitSlop={8}>
+                      {isInherited ? (
+                        <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                          Inherited{p.inheritedFromName ? ` · ${p.inheritedFromName}` : ""}
+                        </Text>
+                      ) : null}
+
+                      {!isOwner && (!isInherited || isMe) && (
+                        <Pressable
+                          onPress={() => handleRemove(permId, isMe, isInherited)}
+                          hitSlop={8}
+                        >
                           <MaterialIcons name="close" size={18} color={colors.textSecondary} />
                         </Pressable>
                       )}

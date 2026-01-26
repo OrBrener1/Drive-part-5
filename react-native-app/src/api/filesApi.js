@@ -27,7 +27,7 @@ export async function createItem({ name, type, parentId, content }) {
     );
   }
 
- return { ok: true };
+  return response.json();
 
 }
 
@@ -369,6 +369,18 @@ export async function addPermission(fileId, email, type) {
   }
 
   return res.json();
+}
+
+export async function denySelfAccess(fileId) {
+  const res = await apiFetch(`${API_ENDPOINTS.PERMISSIONS(fileId)}/deny`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const { message, body } = await readErrorMessage(res, "DENY_ACCESS_FAILED");
+    throw makeHttpError(message, res.status, body);
+  }
+
+  return true;
 }
 
 export async function updatePermission(fileId, permissionId, type) {

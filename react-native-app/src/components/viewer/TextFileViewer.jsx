@@ -4,7 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemeContext } from "../../theme/themeContext";
-import { updateFileContent } from "../../api/filesApi";
+import { AuthContext } from "../../context/AuthContext";
+import { getFileById, getPermissions, updateFileContent } from "../../api/filesApi";
 
 export default function TextFileViewer({ item }) {
   if (item.type === "image") {
@@ -12,6 +13,7 @@ export default function TextFileViewer({ item }) {
   }
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
+  const { user } = useContext(AuthContext);
   const insets = useSafeAreaInsets();
   const inputRef = useRef(null);
   const saveTimerRef = useRef(null);
@@ -19,6 +21,38 @@ export default function TextFileViewer({ item }) {
   const [content, setContent] = useState(item.content || "");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [canEdit, setCanEdit] = useState(true);
+  const [permStatus, setPermStatus] = useState("idle");
+
+  async function resolvePermissionType(startItem, userId, userEmail) {
+    const visited = new Set();
+    let current = startItem;
+
+    for (let guard = 0; current?.id && guard < 20; guard += 1) {
+      if (visited.has(current.id)) break;
+      visited.add(current.id);
+
+      const perms = await getPermissions(current.id);
+      const match = (perms || []).find((p) => {
+        const sameUserId = String(p.userId) === String(userId);
+        const sameEmail = userEmail
+          ? String(p.user?.email || "").toLowerCase() === String(userEmail).toLowerCase()
+          : false;
+        return sameUserId || sameEmail;
+      });
+
+      if (match?.type) return match.type;
+
+      if (current?.ownerId && String(current.ownerId) === String(userId)) {
+        return "ADMIN";
+      }
+
+      if (!current?.parentId) break;
+      current = await getFileById(current.parentId);
+    }
+
+    return null;
+  }
 
   useEffect(() => {
     setContent(item.content || "");
@@ -30,6 +64,7 @@ export default function TextFileViewer({ item }) {
     }
 
     saveTimerRef.current = setTimeout(async () => {
+      if (!canEdit) return;
       if (content === (item.content || "")) return;
       try {
         setSaving(true);
@@ -43,9 +78,44 @@ export default function TextFileViewer({ item }) {
     }, 600);
 
     return () => clearTimeout(saveTimerRef.current);
-  }, [content, item.content, item.id]);
+  }, [canEdit, content, item.content, item.id]);
 
+  useEffect(() => {
+    let cancelled = false;
 
+    async function resolveAccess() {
+      if (!item?.id) return;
+
+      const userId = user?.id || user?._id;
+      if (!userId) {
+        setCanEdit(false);
+        return;
+      }
+
+      if (item?.ownerId && String(item.ownerId) === String(userId)) {
+        setCanEdit(true);
+        return;
+      }
+
+      setPermStatus("loading");
+      setCanEdit(false);
+
+      try {
+        const permType = await resolvePermissionType(item, userId, user?.email);
+        if (cancelled) return;
+        setCanEdit(permType === "WRITE" || permType === "ADMIN");
+      } catch {
+        if (!cancelled) setCanEdit(false);
+      } finally {
+        if (!cancelled) setPermStatus("done");
+      }
+    }
+
+    resolveAccess();
+    return () => {
+      cancelled = true;
+    };
+  }, [item?.id, item?.ownerId, item?.parentId, user?._id, user?.email, user?.id]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -94,6 +164,14 @@ export default function TextFileViewer({ item }) {
               <Text style={{ color: colors.error, marginTop: 2 }}>
                 {saveError}
               </Text>
+            ) : permStatus === "loading" ? (
+              <Text style={{ color: colors.textSecondary, marginTop: 2 }}>
+                Checking access...
+              </Text>
+            ) : !canEdit ? (
+              <Text style={{ color: colors.textSecondary, marginTop: 2 }}>
+                Read-only access
+              </Text>
             ) : (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
                 <Text style={{ color: colors.textSecondary }}>Saved</Text>
@@ -107,7 +185,8 @@ export default function TextFileViewer({ item }) {
       </View>
 
       <Pressable
-        onPress={() => inputRef.current?.focus()}
+        onPress={canEdit ? () => inputRef.current?.focus() : undefined}
+        disabled={!canEdit}
         style={{
           flex: 1,
           paddingTop: 12,
@@ -131,8 +210,10 @@ export default function TextFileViewer({ item }) {
             multiline
             value={content}
             onChangeText={setContent}
-            placeholder="Tap to edit..."
+            placeholder={canEdit ? "Tap to edit..." : "View only"}
             placeholderTextColor={colors.textSecondary}
+            editable={canEdit}
+            showSoftInputOnFocus={canEdit}
             style={{
               flex: 1,
               fontFamily: "monospace",

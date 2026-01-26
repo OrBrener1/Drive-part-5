@@ -132,8 +132,8 @@ export default function ImageFileViewer({ item, onRefresh }) {
           <Animated.Image
             source={require("../../../assets/squirl.png")}
             style={{
-              width: 260,
-              height: 260,
+              width: 300,
+              height: 300,
               transform: [
                 {
                   rotate: spinAnim.interpolate({
@@ -145,7 +145,9 @@ export default function ImageFileViewer({ item, onRefresh }) {
             }}
             resizeMode="contain"
           />
-          <Text style={{ color: colors.textSecondary, marginTop: 10 }}>Loading...</Text>
+          <Text style={{ color: colors.textSecondary, marginTop: 10, fontSize: 16 }}>
+            Loading...
+          </Text>
         </View>
       )}
     </View>

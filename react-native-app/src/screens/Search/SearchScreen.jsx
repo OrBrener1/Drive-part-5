@@ -125,6 +125,12 @@ export default function SearchScreen() {
             runSearch(query);
           }
         }}
+        onAccessRevoked={() => {
+          permissionsUI.closePermissions();
+          if (query.trim()) {
+            runSearch(query);
+          }
+        }}
       />
     </Screen>
   );

@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Alert, Linking, Modal, Platform, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../theme/themeContext";
@@ -7,8 +7,25 @@ import Avatar from "../avatar/Avatar";
 import BottomSheet from "../bottomSheet/BottomSheet";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { getDownloadUrl } from "../../api/filesApi";
+import { getDownloadUrl, getPermissions } from "../../api/filesApi";
 import { getToken } from "../../api/apiClient";
+
+
+const ICONS = {
+  info: "\u2139\uFE0F",
+  people: "\uD83D\uDC65",
+  star: "\u2B50",
+  download: "\u2B07",
+  rename: "\u270F\uFE0F",
+  move: "\u2194",
+  restore: "\u267B\uFE0F",
+  delete: "\u274C",
+  bin: "\uD83D\uDDD1\uFE0F",
+  folder: "\uD83D\uDCC1",
+  image: "\uD83D\uDDBC\uFE0F",
+  file: "\uD83D\uDCC4",
+  dash: "\u2014",
+};
 
 export default function FileRow({
   item,
@@ -29,11 +46,10 @@ export default function FileRow({
   const [menuOpen, setMenuOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsShared, setDetailsShared] = useState(null);
 
   const isFolder = item?.type === "folder";
-  const isImage =
-    item?.contentType === "image" ||
-    (item?.type === "file" && isImageFilename(item?.name));
+  const isImage = item?.contentType === "image";
   const isStarred = Boolean(item?.isStarred);
   const isShared =
     typeof item?.isShared === "boolean"
@@ -52,6 +68,7 @@ export default function FileRow({
     : null;
   const lastOpenedLabel = formatDateTime(item?.lastOpened);
   const createdAtLabel = formatDateTime(item?.createdAt);
+  const ownerId = item?.ownerId ? String(item.ownerId) : null;
   const showLastOpened = listContext === "recent" || listContext === "home";
   const timestampLabel = showLastOpened
     ? lastOpenedLabel
@@ -177,17 +194,18 @@ export default function FileRow({
   }
 
   const menuItems = useMemo(() => {
-    const items = [];
-    items.push({
-      key: "details",
-      icon: "ℹ️",
-      label: "Details",
-      onPress: () => setDetailsOpen(true),
-    });
+    const items = [
+      {
+        key: "details",
+        icon: ICONS.info,
+        label: "Details",
+        onPress: () => setDetailsOpen(true),
+      },
+    ];
     if (onOpenPermissions) {
       items.push({
         key: "permissions",
-        icon: "👥",
+        icon: ICONS.people,
         label: "Permissions",
         onPress: () => onOpenPermissions(item),
       });
@@ -195,7 +213,7 @@ export default function FileRow({
     if (onToggleStar) {
       items.push({
         key: "star",
-        icon: "⭐",
+        icon: ICONS.star,
         label: isStarred ? "Unstar" : "Star",
         onPress: () => onToggleStar(item),
       });
@@ -203,7 +221,7 @@ export default function FileRow({
     if (!isBinView && item?.type === "file") {
       items.push({
         key: "download",
-        icon: "⬇",
+        icon: ICONS.download,
         iconSize: 20,
         label: "Download",
         onPress: handleDownload,
@@ -212,7 +230,7 @@ export default function FileRow({
     if (!isBinView && onRenameSuccess) {
       items.push({
         key: "rename",
-        icon: "✏️",
+        icon: ICONS.rename,
         label: "Rename",
         onPress: () => setRenameOpen(true),
       });
@@ -220,7 +238,7 @@ export default function FileRow({
     if (!isBinView && onMove) {
       items.push({
         key: "move",
-        icon: "↔",
+        icon: ICONS.move,
         iconSize: 24,
         label: "Move",
         onPress: () => onMove(item),
@@ -229,7 +247,7 @@ export default function FileRow({
     if (isBinView && onRestoreFromBin) {
       items.push({
         key: "restore",
-        icon: "♻️",
+        icon: ICONS.restore,
         label: "Restore",
         onPress: () => onRestoreFromBin(item),
       });
@@ -237,14 +255,14 @@ export default function FileRow({
     if (isBinView && onDeleteForever) {
       items.push({
         key: "delete_forever",
-        icon: "❌",
+        icon: ICONS.delete,
         label: "Delete forever",
         onPress: () => onDeleteForever(item),
       });
     } else if (!isBinView && onMoveToBin) {
       items.push({
         key: "bin",
-        icon: "🗑️",
+        icon: ICONS.bin,
         label: "Move to bin",
         onPress: () => onMoveToBin(item),
       });
@@ -261,6 +279,29 @@ export default function FileRow({
     onRestoreFromBin,
     onToggleStar,
   ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDetails() {
+      if (!detailsOpen || !item?.id) return;
+      try {
+        const perms = await getPermissions(item.id);
+        if (cancelled) return;
+        if (!Array.isArray(perms) || !ownerId) {
+          setDetailsShared(null);
+          return;
+        }
+        const hasNonOwner = perms.some((p) => String(p.userId) !== ownerId);
+        setDetailsShared(hasNonOwner);
+      } catch {
+        if (!cancelled) setDetailsShared(null);
+      }
+    }
+    loadDetails();
+    return () => {
+      cancelled = true;
+    };
+  }, [detailsOpen, item?.id, ownerId]);
 
   return (
     <>
@@ -280,9 +321,7 @@ export default function FileRow({
       >
         {isGrid ? (
           <View style={{ alignItems: "center", gap: 8 }}>
-            <Text style={{ fontSize: 24 }}>
-              {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
-            </Text>
+            <Text style={{ fontSize: 24 }}>{isFolder ? ICONS.folder : isImage ? ICONS.image : ICONS.file}</Text>
             <Text
               style={{ color: colors.textPrimary, fontSize: 14, textAlign: "center" }}
               numberOfLines={2}
@@ -320,9 +359,7 @@ export default function FileRow({
           </View>
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Text style={{ fontSize: 20 }}>
-              {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
-            </Text>
+            <Text style={{ fontSize: 20 }}>{isFolder ? ICONS.folder : isImage ? ICONS.image : ICONS.file}</Text>
 
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -431,7 +468,10 @@ export default function FileRow({
 
       <BottomSheet
         visible={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
+        onClose={() => {
+          setDetailsOpen(false);
+          setDetailsShared(null);
+        }}
         titleLeft="Details"
         titleRight="Close"
         heightPercent={0.55}
@@ -467,13 +507,16 @@ export default function FileRow({
           </View>
 
           <View style={{ gap: 16 }}>
-            <DetailRow label="Type" value={item?.type || "—"} />
+            <DetailRow label="Type" value={item?.type || ICONS.dash} />
             {item?.type === "file" && (
-              <DetailRow label="Content" value={item?.contentType || "—"} />
+              <DetailRow label="Content" value={item?.contentType || ICONS.dash} />
             )}
-            <DetailRow label="Created" value={createdAtLabel || "—"} />
-            <DetailRow label="Last opened" value={lastOpenedLabel || "—"} />
-            <DetailRow label="Shared" value={isShared ? "Yes" : "No"} />
+            <DetailRow label="Created" value={createdAtLabel || ICONS.dash} />
+            <DetailRow label="Last opened" value={lastOpenedLabel || ICONS.dash} />
+            <DetailRow
+              label="Shared"
+              value={(detailsShared ?? isShared) ? "Yes" : "No"}
+            />
             <DetailRow label="Starred" value={isStarred ? "Yes" : "No"} />
           </View>
 

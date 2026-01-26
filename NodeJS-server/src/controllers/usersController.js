@@ -99,10 +99,37 @@ function setThemePreference(req, res) {
   return res.status(204).send();
 }
 
+// PUT /api/users/me/avatar
+function setAvatar(req, res) {
+  const userId = req.userId;
+  let { image } = req.body || {};
+
+  if (image === "") image = null;
+  if (image !== null && typeof image !== "string") {
+    return res.status(400).json({ error: "invalid image" });
+  }
+
+  const user = userModel.getUserById(userId);
+
+  if (!user) {
+    return res.status(404).json({ error: "user not found" });
+  }
+
+  user.image = image || null;
+
+  return res.status(200).json({
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName,
+    image: user.image,
+  });
+}
+
 module.exports = {
   register,
   getUserById,
   getMe,
   getThemePreference,
-  setThemePreference
+  setThemePreference,
+  setAvatar
 };

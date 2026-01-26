@@ -1,5 +1,6 @@
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
@@ -13,13 +14,69 @@ export default function UserMenu({ visible, onClose }) {
   const styles = createStyles(theme);
 
   // Auth data and actions
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, updateUserAvatar } = useContext(AuthContext);
   const router = useRouter();
   const themeToggleEmoji = useMemo(
     () => (mode === "dark" ? "🌞" : "🌙"),
     [mode]
   );
 
+  const [showAvatarActions, setShowAvatarActions] = useState(false);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+
+  const applyAvatarUpdate = async (image) => {
+    setAvatarError("");
+    setUpdatingAvatar(true);
+
+    const result = await updateUserAvatar(image);
+
+    if (!result.ok) {
+      setAvatarError(result.message || "Avatar update failed");
+    }
+
+    setUpdatingAvatar(false);
+  };
+
+  // ---- Image handlers ----
+  const pickImageFromLibrary = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      await applyAvatarUpdate(asset.base64);
+    }
+  };
+
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      setAvatarError("Camera permission is required");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      await applyAvatarUpdate(asset.base64);
+    }
+  };
+
+  const removeImage = async () => {
+    await applyAvatarUpdate(null);
+  };
 
   return (
     <BottomSheet
@@ -28,21 +85,58 @@ export default function UserMenu({ visible, onClose }) {
       heightPercent={0.92}
       titleLeft={themeToggleEmoji}
       onLeftPress={toggleTheme}
-      titleRight="Finished"      // Explicit close action
+      titleRight="Finished" // Explicit close action
     >
       <View style={styles.container}>
         {/* Email (centered, above avatar) */}
-        <Text style={styles.email}>
-          {user?.email}
-        </Text>
+        <Text style={styles.email}>{user?.email}</Text>
 
         {/* User avatar (image or initials handled internally) */}
-        <Avatar user={user} size="xl" />
+        <Pressable
+          style={styles.avatarPressable}
+          onPress={() => setShowAvatarActions((prev) => !prev)}
+          disabled={updatingAvatar}
+        >
+          <View>
+            <Avatar user={user} size="xl" />
+            <View style={styles.avatarBadge}>
+              <Text style={styles.avatarBadgeIcon}>📷</Text>
+            </View>
+          </View>
+        </Pressable>
+
+        {showAvatarActions && (
+          <>
+            <View style={styles.imageActionsRow}>
+              <Pressable
+                style={styles.imageActionBtn}
+                onPress={pickImageFromLibrary}
+                disabled={updatingAvatar}
+              >
+                <Text style={styles.imageActionText}> ⬆️ Upload from device</Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.imageActionBtn}
+                onPress={takePhoto}
+                disabled={updatingAvatar}
+              >
+                <Text style={styles.imageActionText}> 📷Take a picture</Text>
+              </Pressable>
+            </View>
+
+            {!!user?.image && (
+              <Pressable style={styles.removeImageRow} onPress={removeImage}>
+                <Text style={styles.removeImageText}>Remove image</Text>
+              </Pressable>
+            )}
+
+            {!!avatarError && <Text style={styles.errorText}>{avatarError}</Text>}
+          </>
+        )}
 
         {/* Greeting */}
-        <Text style={styles.greeting}>
-          Hi, {user?.displayName || "User"}
-        </Text>
+        <Text style={styles.greeting}>Hi, {user?.displayName || "User"}</Text>
 
         {/* Placeholder for future content (logo / actions) */}
         <View style={styles.placeholder}>
@@ -58,8 +152,8 @@ export default function UserMenu({ visible, onClose }) {
         <Pressable
           style={styles.logoutButton}
           onPress={() => {
-            logout();              // Clear auth state
-            onClose();             // Close the bottom sheet
+            logout(); // Clear auth state
+            onClose(); // Close the bottom sheet
             //router.replace("public/login"); // Redirect to login screen
           }}
         >

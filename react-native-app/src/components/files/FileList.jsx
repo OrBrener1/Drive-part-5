@@ -27,6 +27,8 @@ export default function FileList({
       keyExtractor={(item) => item.id}
       numColumns={isGrid ? 2 : 1}
       columnWrapperStyle={isGrid ? { justifyContent: "space-between" } : undefined}
+      keyboardShouldPersistTaps="always"
+      keyboardDismissMode="none"
       scrollEnabled={scrollEnabled}
       contentContainerStyle={[
         contentContainerStyle,

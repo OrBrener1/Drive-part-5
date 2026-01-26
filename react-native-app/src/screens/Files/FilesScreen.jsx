@@ -121,6 +121,7 @@ export default function FilesScreen({ parentId = null, onBack, origin }) {
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
+        onAccessRevoked={loadFiles}
       />
       <CreateOverlay
         parentId={parentId}

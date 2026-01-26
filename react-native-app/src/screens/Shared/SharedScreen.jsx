@@ -121,6 +121,7 @@ export default function SharedScreen() {
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
+        onAccessRevoked={loadFiles}
       />
       <CreateOverlay onRefresh={loadFiles} />
       <CreateFab

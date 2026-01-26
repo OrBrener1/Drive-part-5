@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 function toDomainItem(mongoItem) {
   if (!mongoItem) return null;
 
-  return FileSystemItemFactory.create(
+  const domainItem = FileSystemItemFactory.create(
     mongoItem.type,
     mongoItem._id,
     mongoItem.name,
@@ -19,6 +19,16 @@ function toDomainItem(mongoItem) {
     mongoItem.createdAt,
     mongoItem.lastOpened
   );
+
+  if (mongoItem.contentType && domainItem.type === 'file') {
+    domainItem.contentType = mongoItem.contentType;
+  }
+
+  if (mongoItem.originalParentId != null) {
+    domainItem.originalParentId = mongoItem.originalParentId;
+  }
+
+  return domainItem;
 }
 //convert array of mongo items to domain items
 function toDomainItems(mongoItems) {

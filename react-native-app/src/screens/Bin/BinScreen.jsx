@@ -107,6 +107,7 @@ export default function BinScreen() {
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
+        onAccessRevoked={loadFiles}
       />
     </Screen>
   );

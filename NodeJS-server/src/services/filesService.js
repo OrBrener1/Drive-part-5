@@ -48,6 +48,22 @@ function deriveContentTypeFromContent(content) {
     : 'text';
 }
 
+async function collectDescendants(root) {
+  const items = [root];
+
+  if (root.type !== 'folder') {
+    return items;
+  }
+
+  const children = await filesRepository.getChildren(root.id);
+  for (const child of children) {
+    const descendants = await collectDescendants(child);
+    items.push(...descendants);
+  }
+
+  return items;
+}
+
 // Permission manager to check user permissions (with dynamic inheritance)
 const canUserAccessFile = async (userId, file, action) => {
   if (!file) return false;
@@ -142,7 +158,7 @@ const getStarredForUser = async (userId) => {
 
 // Returns recent items (owned or shared) per-user, sorted by lastOpened desc, limited to 20.
 const getRecentFiles = async (userId) => {
-  const recents = recentStore.getUserRecents(userId);
+  const recents = await recentStore.getUserRecents(userId);
 
  const items = [];
 
@@ -238,7 +254,7 @@ const getFileByIdWithContent = async (id, userId) => {
   }
 
   const nowIso = new Date().toISOString();
-  const userLastOpened = recentStore.touch(userId, id, nowIso);
+  const userLastOpened = await recentStore.touch(userId, id, nowIso);
   const fileWithUserTime = { ...metaResult.file, lastOpened: userLastOpened };
   const file = await addStarToItem(fileWithUserTime, userId);
 
@@ -273,7 +289,7 @@ const getFileByIdWithContent = async (id, userId) => {
           type: child.type,
           isStarred: child.isStarred,
           contentType: child.contentType,
-          lastOpened: recentStore.getLastOpened(userId, child.id),
+          lastOpened: await recentStore.getLastOpened(userId, child.id),
           ownerId: child.ownerId,
           ownerName,
           ownerEmail,
@@ -424,7 +440,7 @@ const createFile = async (
   await filesRepository.saveFile(item);
 
   // Add to recent files for creator
-  recentStore.touch(userId, id, nowIso);
+  await recentStore.touch(userId, id, nowIso);
 
   return { status: 'OK', file: item };
 };
@@ -438,7 +454,7 @@ const getFilesByParent = async (userId, parentId) => {
   if (!(await canUserAccessFile(userId, parent, 'get'))) return 'NO_PERMISSION';
   if (!(await binService.isItemOrAncestorInBin(userId, parent.id))) {
     const nowIso = new Date().toISOString();
-    recentStore.touch(userId, parent.id, nowIso);
+    await recentStore.touch(userId, parent.id, nowIso);
   }
 
   const children = await filesRepository.getChildren(parentId);
@@ -582,15 +598,14 @@ const deleteFileById = async (fileId, userId) => {
   ) {
   return 'FORBIDDEN';
   }
-  // Must have delete permission
-  if (!await canUserAccessFile(userId, item, 'delete')) {
-    return 'NO_PERMISSION';
-  }
   
   // NON-OWNER: local delete only
   if (String(item.ownerId) !== String(userId)) {
-    // Remove only this user's permissions
-    await permissionService.deletePermissionByUserAndFile(userId, fileId);
+    const subtree = await collectDescendants(item);
+
+    for (const entry of subtree) {
+      await permissionService.deletePermissionByUserAndFile(userId, entry.id);
+    }
 
     // Remove from this user's bin
     await binService.restoreFromUserBin(userId, fileId);
@@ -600,13 +615,13 @@ const deleteFileById = async (fileId, userId) => {
 
   // OWNER: global delete
   try {
+    const subtree = await collectDescendants(item);
     await deleteRecursively(item);
 
-    // Remove permissions for everyone
-    await permissionService.deletePermissionsForFile(fileId);
-    
-    // Remove from all users' bins
-    await binService.removeEverywhere(fileId);
+    for (const entry of subtree) {
+      await permissionService.deletePermissionsForFile(entry.id);
+      await binService.removeEverywhere(entry.id);
+    }
 
     return 'OK';
   } catch (e) {

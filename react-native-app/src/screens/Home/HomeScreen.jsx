@@ -171,6 +171,8 @@ export default function HomeScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 96 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
         >
           <View style={{ marginTop: 4 }}>
             <Text
@@ -201,6 +203,7 @@ export default function HomeScreen() {
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
+        onAccessRevoked={loadFiles}
       />
       <CreateOverlay onRefresh={loadFiles} onCreated={() => setQuery("")} />
       <CreateFab

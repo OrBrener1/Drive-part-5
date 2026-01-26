@@ -113,7 +113,7 @@ function RoleSelect({ value, onChange, disabled }) {
   );
 }
 
-export default function PermissionsModal({ visible, item, onClose }) {
+export default function PermissionsModal({ visible, item, onClose, onAccessRevoked }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { user: currentUser } = useContext(AuthContext);
@@ -252,7 +252,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
     }
   }
 
-  function handleRemove(permissionId) {
+  function handleRemove(permissionId, isSelf) {
     if (!itemId) return;
     Alert.alert(
       "Remove access",
@@ -268,6 +268,11 @@ export default function PermissionsModal({ visible, item, onClose }) {
               setPermissions((prev) =>
                 prev.filter((p) => (p.id || p._id) !== permissionId)
               );
+              if (isSelf) {
+                onAccessRevoked?.(itemId);
+                onClose?.();
+                return;
+              }
               setNotice({ type: "success", message: "Access removed" });
             } catch (err) {
               setNotice({
@@ -329,7 +334,11 @@ export default function PermissionsModal({ visible, item, onClose }) {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+        >
           <Text style={{ color: colors.textPrimary, fontSize: 14, fontWeight: "600" }}>
             Add people
           </Text>
@@ -427,9 +436,14 @@ export default function PermissionsModal({ visible, item, onClose }) {
                 {displayPermissions.map((p) => {
                   const permId = p.id || p._id;
                   const isOwner = Boolean(p.isOwner) || String(p.userId) === ownerId;
-                  const isMe = currentUser?.email && p.user?.email
+                  const currentUserId = currentUser?.id || currentUser?._id;
+                  const isMeById = currentUserId
+                    ? String(currentUserId) === String(p.userId)
+                    : false;
+                  const isMeByEmail = currentUser?.email && p.user?.email
                     ? currentUser.email === p.user.email
                     : false;
+                  const isMe = isMeById || isMeByEmail;
                   const displayName = p.user?.displayName || "Unknown";
                   const displayEmail = p.user?.email || "";
                   const avatarUser = {
@@ -474,7 +488,10 @@ export default function PermissionsModal({ visible, item, onClose }) {
                       )}
 
                       {!isOwner && (
-                        <Pressable onPress={() => handleRemove(permId)} hitSlop={8}>
+                        <Pressable
+                          onPress={() => handleRemove(permId, isMe)}
+                          hitSlop={8}
+                        >
                           <MaterialIcons name="close" size={18} color={colors.textSecondary} />
                         </Pressable>
                       )}

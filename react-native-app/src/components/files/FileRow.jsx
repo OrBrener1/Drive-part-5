@@ -29,9 +29,7 @@ export default function FileRow({
   const [renameOpen, setRenameOpen] = useState(false);
 
   const isFolder = item?.type === "folder";
-  const isImage =
-    item?.contentType === "image" ||
-    (item?.type === "file" && isImageFilename(item?.name));
+  const isImage = item?.contentType === "image";
   const isStarred = Boolean(item?.isStarred);
   const isShared =
     typeof item?.isShared === "boolean"

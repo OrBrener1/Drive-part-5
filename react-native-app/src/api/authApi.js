@@ -23,7 +23,6 @@ export async function login(email, password) {
 }
 
 export async function register(email, password, displayName, image) {
-  console.log("REGISTER PAYLOAD IMAGE:", image?.slice(0, 30));
   const response = await apiFetch(API_ENDPOINTS.REGISTER, {
     method: "POST",
     headers: {

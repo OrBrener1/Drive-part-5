@@ -87,19 +87,24 @@ export default function ImageFileViewer({ item, onRefresh }) {
         resizeMode="contain"
         onLoadStart={() => setImageLoading(true)}
         onLoadEnd={() => setImageLoading(false)}
-        onError={(e) => {
-          console.warn("Image load failed", e?.nativeEvent?.error);
+        onError={() => {
           setImageLoading(false);
         }}
       />
 
-      <View
-        style={[
-          styles.topBar,
-          { top: insets.top + 12, flexDirection: I18nManager.isRTL ? "row" : "row-reverse" },
-        ]}
-      >
-        {/* Back button */}
+      <View style={[styles.topBar, { top: insets.top + 12 }]}>
+        {/* Replace button */}
+        <Pressable
+          style={[styles.topButton, { backgroundColor: colors.surface }]}
+          onPress={onReplacePress}
+          disabled={imageLoading || replacing}
+        >
+          <Text style={[styles.topButtonText, { color: colors.textPrimary }]}>
+            Replace
+          </Text>
+        </Pressable>
+
+        {/* Back button (always right) */}
         <Pressable
           style={[styles.iconButton, { backgroundColor: colors.surface }]}
           onPress={() => router.back()}
@@ -110,17 +115,6 @@ export default function ImageFileViewer({ item, onRefresh }) {
             size={20}
             color={colors.textSecondary}
           />
-        </Pressable>
-
-        {/* Replace button */}
-        <Pressable
-          style={[styles.topButton, { backgroundColor: colors.surface }]}
-          onPress={onReplacePress}
-          disabled={imageLoading || replacing}
-        >
-          <Text style={[styles.topButtonText, { color: colors.textPrimary }]}>
-            Replace
-          </Text>
         </Pressable>
       </View>
 

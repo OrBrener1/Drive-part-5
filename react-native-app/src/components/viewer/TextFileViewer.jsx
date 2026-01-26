@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useContext } from "react";
-import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, Pressable, ActivityIndicator, I18nManager } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -129,11 +129,13 @@ export default function TextFileViewer({ item }) {
           backgroundColor: colors.surface,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
           <Pressable
             onPress={() => router.back()}
             hitSlop={8}
             style={{
+              position: "absolute",
+              right: 0,
               width: 34,
               height: 34,
               borderRadius: 17,
@@ -142,13 +144,16 @@ export default function TextFileViewer({ item }) {
               borderWidth: 1,
               borderColor: colors.border,
               backgroundColor: colors.background,
-              marginRight: 8,
             }}
           >
-            <MaterialIcons name="arrow-back" size={20} color={colors.textSecondary} />
+            <MaterialIcons
+              name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"}
+              size={20}
+              color={colors.textSecondary}
+            />
           </Pressable>
 
-          <View style={{ flex: 1, alignItems: "center" }}>
+          <View style={{ alignItems: "center" }}>
             <Text
               style={{ color: colors.textPrimary, fontSize: 17, fontWeight: "600" }}
               numberOfLines={1}

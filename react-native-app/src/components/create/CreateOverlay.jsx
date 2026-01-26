@@ -49,8 +49,7 @@ export default function CreateOverlay({
 
       await uploadFile(uploadPayload, parentId);
       await onRefresh?.();
-    } catch (e) {
-      console.error("UPLOAD FAILED", e);
+    } catch {
     }
   }
 

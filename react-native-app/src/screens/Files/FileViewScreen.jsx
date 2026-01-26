@@ -15,7 +15,6 @@ export default function FileViewScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
 
-  console.log("FILE VIEW SCREEN RENDER", fileId);
 
   async function loadItem() {
     if (!fileId) return;

@@ -32,9 +32,8 @@ export default function Avatar({ user, size = "md" }) {
 
   const dimension = sizeMap[size] || sizeMap.md;
 
-  // Decorative ring (brand accent, not status indicator)
-    const ringWidth = 3;
-  const ringColor = colors.primary;
+  // Decorative ring removed per design request
+  const ringWidth = 0;
 
   const backgroundColor = useMemo(
     () => getAvatarColor(user?.id || user?.email, colors),
@@ -55,7 +54,6 @@ export default function Avatar({ user, size = "md" }) {
         height: dimension + ringWidth * 2,
         borderRadius: (dimension + ringWidth * 2) / 2,
         borderWidth: ringWidth,
-        borderColor: ringColor,
         alignItems: "center",
         justifyContent: "center",
       }}

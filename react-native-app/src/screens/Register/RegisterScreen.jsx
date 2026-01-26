@@ -150,7 +150,7 @@ export default function RegisterScreen() {
             style={styles.footerLink}
             onPress={() => router.replace("/public/login")}
           >
-            Sign in
+            Log in
           </Text>
         </Text>
       }

@@ -3,6 +3,7 @@ import { Alert, Linking, Modal, Platform, Pressable, Text, View } from "react-na
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../theme/themeContext";
 import RenameModal from "./RenameModal";
+import Avatar from "../avatar/Avatar";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { getDownloadUrl } from "../../api/filesApi";
@@ -30,9 +31,31 @@ export default function FileRow({
   const isFolder = item?.type === "folder";
   const isImage = item?.contentType === "image";
   const isStarred = Boolean(item?.isStarred);
-  const isShared = currentUserId && String(item?.ownerId) !== String(currentUserId);
+  const isShared =
+    typeof item?.isShared === "boolean"
+      ? item.isShared
+      : currentUserId && String(item?.ownerId) !== String(currentUserId);
   const isBinView = listContext === "bin";
   const isGrid = viewMode === "grid";
+  const showOwnerAvatar = listContext === "shared";
+  const ownerUser = showOwnerAvatar
+    ? {
+        id: item?.ownerId,
+        displayName: item?.ownerName,
+        email: item?.ownerEmail,
+        image: item?.ownerImage,
+      }
+    : null;
+  const lastOpenedLabel = formatDateTime(item?.lastOpened);
+  const createdAtLabel = formatDateTime(item?.createdAt);
+  const showLastOpened = listContext === "recent" || listContext === "home";
+  const timestampLabel = showLastOpened
+    ? lastOpenedLabel
+      ? `Last opened: ${lastOpenedLabel}`
+      : null
+    : createdAtLabel
+      ? `Created at: ${createdAtLabel}`
+      : null;
 
   async function handleDownload() {
     try {
@@ -246,6 +269,14 @@ export default function FileRow({
             >
               {item?.name}
             </Text>
+            {showOwnerAvatar && ownerUser && (
+              <Avatar user={ownerUser} size="sm" />
+            )}
+            {timestampLabel && (
+              <Text style={{ color: colors.textSecondary, fontSize: 11 }}>
+                {timestampLabel}
+              </Text>
+            )}
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               {isStarred && (
                 <MaterialIcons name="star" size={14} color="#f4c542" />
@@ -289,20 +320,30 @@ export default function FileRow({
                 {isShared && (
                   <MaterialIcons name="people" size={14} color={colors.textSecondary} />
                 )}
+                {timestampLabel && (
+                  <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                    {timestampLabel}
+                  </Text>
+                )}
               </View>
             </View>
 
-            {menuItems.length > 0 && (
-              <Pressable
-                onPress={(event) => {
-                  event.stopPropagation?.();
-                  setMenuOpen(true);
-                }}
-                hitSlop={8}
-              >
-                <MaterialIcons name="more-vert" size={20} color={colors.textSecondary} />
-              </Pressable>
-            )}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              {showOwnerAvatar && ownerUser && (
+                <Avatar user={ownerUser} size="sm" />
+              )}
+              {menuItems.length > 0 && (
+                <Pressable
+                  onPress={(event) => {
+                    event.stopPropagation?.();
+                    setMenuOpen(true);
+                  }}
+                  hitSlop={8}
+                >
+                  <MaterialIcons name="more-vert" size={20} color={colors.textSecondary} />
+                </Pressable>
+              )}
+            </View>
           </View>
         )}
       </Pressable>
@@ -364,6 +405,23 @@ export default function FileRow({
   );
 }
 
+function formatDateTime(value) {
+  if (!value) return null;
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return null;
+  try {
+    return dt.toLocaleString(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return null;
+  }
+}
+
 function detectMimeFromName(name) {
   const lower = String(name || "").toLowerCase();
   if (lower.endsWith(".png")) return "image/png";
@@ -372,6 +430,18 @@ function detectMimeFromName(name) {
   if (lower.endsWith(".pdf")) return "application/pdf";
   if (lower.endsWith(".txt")) return "text/plain";
   return "application/octet-stream";
+}
+
+function isImageFilename(name) {
+  const lower = String(name || "").toLowerCase();
+  return (
+    lower.endsWith(".png") ||
+    lower.endsWith(".jpg") ||
+    lower.endsWith(".jpeg") ||
+    lower.endsWith(".gif") ||
+    lower.endsWith(".webp") ||
+    lower.endsWith(".bmp")
+  );
 }
 
 async function openRawInBrowser(fileId) {

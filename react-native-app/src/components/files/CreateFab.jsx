@@ -1,14 +1,42 @@
-import { useContext } from "react";
-import { Pressable, Text } from "react-native";
+import { useContext, useEffect, useRef } from "react";
+import { Animated, Pressable, Text } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";
 
-export default function CreateFab({ onPress, bottomOffset = 20 }) {
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+export default function CreateFab({
+  onPress,
+  bottomOffset = 20,
+  active = false,
+  hidden = false,
+}) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
+  const progress = useRef(new Animated.Value(active ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(progress, {
+      toValue: active ? 1 : 0,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 120,
+    }).start();
+  }, [active, progress]);
+
+  const rotation = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "45deg"],
+  });
+
+  const scale = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.05],
+  });
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
+      pointerEvents={hidden ? "none" : "auto"}
       style={{
         position: "absolute",
         right: 20,
@@ -21,9 +49,19 @@ export default function CreateFab({ onPress, bottomOffset = 20 }) {
         justifyContent: "center",
         elevation: 4,
         zIndex: 10,
+        opacity: hidden ? 0 : 1,
+        transform: [{ scale }],
       }}
     >
-      <Text style={{ color: "#fff", fontSize: 28 }}>+</Text>
-    </Pressable>
+      <Animated.Text
+        style={{
+          color: "#fff",
+          fontSize: 28,
+          transform: [{ rotate: rotation }],
+        }}
+      >
+        +
+      </Animated.Text>
+    </AnimatedPressable>
   );
 }

@@ -1,5 +1,5 @@
 import { useContext, useMemo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
@@ -19,6 +19,7 @@ export default function UserMenu({ visible, onClose }) {
     () => (mode === "dark" ? "🌞" : "🌙"),
     [mode]
   );
+
 
   return (
     <BottomSheet
@@ -45,7 +46,12 @@ export default function UserMenu({ visible, onClose }) {
 
         {/* Placeholder for future content (logo / actions) */}
         <View style={styles.placeholder}>
-          {/* Future content goes here */}
+          <Image
+            source={require("../../../assets/ogs-logo.png")}
+            style={styles.gif}
+            resizeMode="contain"
+            accessibilityLabel="OGS logo"
+          />
         </View>
 
         {/* Logout action */}

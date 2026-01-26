@@ -1,4 +1,5 @@
 const permissionRepository = require('../mongoRepository/permissionRepository');
+const denyAccessService = require('./denyAccessService');
 
 const PERMISSION_TYPES = ['READ', 'WRITE', 'ADMIN'];
 const PERMISSION_HIERARCHY = {
@@ -45,7 +46,9 @@ async function createPermission(fileId, userId, type, metadata = {}) {
     );
   }
 
-  return permissionRepository.createPermission(fileId, userId, type, metadata);
+  const permission = await permissionRepository.createPermission(fileId, userId, type, metadata);
+  await denyAccessService.removeDeny(userId, fileId);
+  return permission;
 }
 
 async function getPermission(permissionId) {
@@ -77,13 +80,15 @@ async function getUserPermissions(userId, action = null) {
 }
 
 async function updatePermission(permissionId, updates = {}) {
-  await getPermissionOrThrow(permissionId);
+  const existing = await getPermissionOrThrow(permissionId);
 
   if (updates.type && !PERMISSION_TYPES.includes(updates.type)) {
     throw new Error(`Invalid permission type: ${updates.type}`);
   }
 
-  return permissionRepository.updatePermission(permissionId, updates);
+  const updated = await permissionRepository.updatePermission(permissionId, updates);
+  await denyAccessService.removeDeny(existing.userId, existing.fileId);
+  return updated;
 }
 
 async function deletePermission(permissionId) {
@@ -102,6 +107,9 @@ async function deletePermissionsForFile(fileId) {
 
 async function hasPermission(userId, fileId, action) {
   if (!userId || !fileId || !action) return false;
+
+  const denied = await denyAccessService.hasDeny(userId, fileId);
+  if (denied) return false;
 
   let requiredLevel;
   try {

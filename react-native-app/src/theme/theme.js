@@ -1,4 +1,4 @@
-// src/Theme/Theme.js
+// src/theme/theme.js
 
 const baseTokens = {
   spacing: {

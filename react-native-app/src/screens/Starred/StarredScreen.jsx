@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useStarredFiles } from "../../hooks/useStarredFiles";
@@ -28,8 +28,9 @@ export default function StarredScreen() {
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { viewMode, toggleViewMode } = useViewMode();
-  const { openMenu } = useCreateUI();
+  const { openMenu, closeMenu, menuOpen } = useCreateUI();
   const router = useRouter();
+  const pathname = usePathname();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({ loadFiles });
@@ -98,7 +99,10 @@ export default function StarredScreen() {
           viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
-              router.push(`/private/(tabs)/folder/${item.id}`);
+              router.push({
+                pathname: "/private/(tabs)/folder/[id]",
+                params: { id: item.id, origin: pathname, parent: "" },
+              });
             } else {
               router.push(`/private/file/${item.id}`);
             }
@@ -117,9 +121,13 @@ export default function StarredScreen() {
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
+        onAccessRevoked={loadFiles}
       />
       <CreateOverlay onRefresh={loadFiles} />
-      <CreateFab onPress={openMenu} />
+      <CreateFab
+        onPress={() => (menuOpen ? closeMenu() : openMenu())}
+        active={menuOpen}
+      />
     </Screen>
   );
 }

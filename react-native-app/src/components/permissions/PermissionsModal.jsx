@@ -13,12 +13,14 @@ import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import {
   addPermission,
+  denySelfAccess,
   getPermissions,
   removePermission,
   updatePermission,
 } from "../../api/filesApi";
 import { getErrorMessage } from "../../utils/errorMessages";
 import LoadingState from "../common/LoadingState";
+import Avatar from "../avatar/Avatar";
 
 const ROLE_OPTIONS = [
   { value: "READ", label: "Viewer" },
@@ -32,15 +34,6 @@ const ROLE_LABELS = ROLE_OPTIONS.reduce((acc, opt) => {
   acc[opt.value] = opt.label;
   return acc;
 }, {});
-
-function getInitials(name, email) {
-  const base = (name || "").trim() || (email || "").trim();
-  if (!base) return "?";
-  const parts = base.split(/\s+/).filter(Boolean);
-  const first = parts[0]?.[0] || "";
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-  return (first + last).toUpperCase() || "?";
-}
 
 function RoleSelect({ value, onChange, disabled }) {
   const { theme } = useContext(ThemeContext);
@@ -121,7 +114,7 @@ function RoleSelect({ value, onChange, disabled }) {
   );
 }
 
-export default function PermissionsModal({ visible, item, onClose }) {
+export default function PermissionsModal({ visible, item, onClose, onAccessRevoked }) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { user: currentUser } = useContext(AuthContext);
@@ -136,6 +129,29 @@ export default function PermissionsModal({ visible, item, onClose }) {
   const itemId = item?.id;
   const itemName = item?.name || "Item";
   const isFolder = item?.type === "folder";
+  const ownerId = item?.ownerId ? String(item.ownerId) : null;
+
+  const displayPermissions = useMemo(() => {
+    const ownerEntry = ownerId
+      ? {
+          id: "owner",
+          userId: ownerId,
+          type: "OWNER",
+          user: {
+            displayName: item?.ownerName || "Owner",
+            email: item?.ownerEmail || "",
+            image: item?.ownerImage || null,
+          },
+          isOwner: true,
+        }
+      : null;
+
+    const nonOwnerPermissions = (permissions || []).filter(
+      (p) => String(p.userId) !== ownerId
+    );
+
+    return ownerEntry ? [ownerEntry, ...nonOwnerPermissions] : nonOwnerPermissions;
+  }, [item?.ownerEmail, item?.ownerImage, item?.ownerName, ownerId, permissions]);
 
   const normalizedEmail = newEmail.trim().toLowerCase();
   const emailValid = EMAIL_REGEX.test(normalizedEmail);
@@ -237,7 +253,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
     }
   }
 
-  function handleRemove(permissionId) {
+  function handleRemove(permissionId, isSelf, isInherited) {
     if (!itemId) return;
     Alert.alert(
       "Remove access",
@@ -249,10 +265,19 @@ export default function PermissionsModal({ visible, item, onClose }) {
           style: "destructive",
           onPress: async () => {
             try {
-              await removePermission(itemId, permissionId);
+              if (isInherited && isSelf) {
+                await denySelfAccess(itemId);
+              } else {
+                await removePermission(itemId, permissionId);
+              }
               setPermissions((prev) =>
                 prev.filter((p) => (p.id || p._id) !== permissionId)
               );
+              if (isSelf) {
+                onAccessRevoked?.(itemId);
+                onClose?.();
+                return;
+              }
               setNotice({ type: "success", message: "Access removed" });
             } catch (err) {
               setNotice({
@@ -314,7 +339,11 @@ export default function PermissionsModal({ visible, item, onClose }) {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+        >
           <Text style={{ color: colors.textPrimary, fontSize: 14, fontWeight: "600" }}>
             Add people
           </Text>
@@ -409,15 +438,26 @@ export default function PermissionsModal({ visible, item, onClose }) {
 
             {status === "success" && (
               <View style={{ marginTop: 12, gap: 12 }}>
-                {permissions.map((p) => {
+                {displayPermissions.map((p) => {
                   const permId = p.id || p._id;
-                  const isOwner = String(item?.ownerId) === String(p.userId);
-                  const isMe = currentUser?.email && p.user?.email
+                  const isOwner = Boolean(p.isOwner) || String(p.userId) === ownerId;
+                  const isInherited = Boolean(p.inherited);
+                  const currentUserId = currentUser?.id || currentUser?._id;
+                  const isMeById = currentUserId
+                    ? String(currentUserId) === String(p.userId)
+                    : false;
+                  const isMeByEmail = currentUser?.email && p.user?.email
                     ? currentUser.email === p.user.email
                     : false;
+                  const isMe = isMeById || isMeByEmail;
                   const displayName = p.user?.displayName || "Unknown";
                   const displayEmail = p.user?.email || "";
-                  const initials = getInitials(displayName, displayEmail);
+                  const avatarUser = {
+                    id: p.userId,
+                    displayName,
+                    email: displayEmail,
+                    image: p.user?.image || null,
+                  };
 
                   return (
                     <View
@@ -431,20 +471,7 @@ export default function PermissionsModal({ visible, item, onClose }) {
                         borderBottomColor: colors.border,
                       }}
                     >
-                      <View
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 18,
-                          backgroundColor: colors.primary,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Text style={{ color: "#fff", fontWeight: "600" }}>
-                          {initials}
-                        </Text>
-                      </View>
+                      <Avatar user={avatarUser} size="sm" />
 
                       <View style={{ flex: 1 }}>
                         <Text style={{ color: colors.textPrimary, fontWeight: "600", fontSize: 14 }}>
@@ -463,11 +490,21 @@ export default function PermissionsModal({ visible, item, onClose }) {
                         <RoleSelect
                           value={p.type}
                           onChange={(nextRole) => handleRoleChange(permId, nextRole)}
+                          disabled={isInherited}
                         />
                       )}
 
-                      {!isOwner && (
-                        <Pressable onPress={() => handleRemove(permId)} hitSlop={8}>
+                      {isInherited ? (
+                        <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                          Inherited{p.inheritedFromName ? ` · ${p.inheritedFromName}` : ""}
+                        </Text>
+                      ) : null}
+
+                      {!isOwner && (!isInherited || isMe) && (
+                        <Pressable
+                          onPress={() => handleRemove(permId, isMe, isInherited)}
+                          hitSlop={8}
+                        >
                           <MaterialIcons name="close" size={18} color={colors.textSecondary} />
                         </Pressable>
                       )}

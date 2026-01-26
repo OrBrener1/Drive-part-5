@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useRecentFiles } from "../../hooks/useRecentFiles";
@@ -26,6 +26,7 @@ export default function RecentScreen() {
   const [query, setQuery] = useState("");
   const { viewMode, toggleViewMode } = useViewMode();
   const router = useRouter();
+  const pathname = usePathname();
 
   const { handleToggleStar, handleMoveToBin, handleRestoreFromBin } =
     useFileActions({
@@ -104,7 +105,10 @@ export default function RecentScreen() {
           viewMode={viewMode}
           onItemPress={(item) => {
             if (item.type === "folder") {
-              router.push(`/private/(tabs)/folder/${item.id}`);
+              router.push({
+                pathname: "/private/(tabs)/folder/[id]",
+                params: { id: item.id, origin: pathname, parent: "" },
+              });
             } else {
               router.push(`/private/file/${item.id}`);
             }
@@ -116,6 +120,7 @@ export default function RecentScreen() {
           onMoveToBin={handleMoveToBin}
           onRestoreFromBin={handleRestoreFromBin}
           currentUserId={user?.id}
+          listContext="recent"
         />
       )}
 
@@ -123,6 +128,7 @@ export default function RecentScreen() {
         visible={permissionsUI.isPermOpen}
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
+        onAccessRevoked={loadFiles}
       />
     </Screen>
   );

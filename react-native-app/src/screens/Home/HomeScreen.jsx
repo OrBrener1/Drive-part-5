@@ -206,13 +206,7 @@ export default function HomeScreen() {
         onAccessRevoked={loadFiles}
         onPermissionsUpdated={loadFiles}
       />
-      <CreateOverlay
-        onRefresh={loadFiles}
-        onCreated={(created) => {
-          if (created) addFile(created);
-          setQuery("");
-        }}
-      />
+      <CreateOverlay onRefresh={loadFiles} />
       <CreateFab
         onPress={() => (menuOpen ? closeMenu() : openMenu())}
         active={menuOpen}

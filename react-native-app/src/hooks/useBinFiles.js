@@ -1,3 +1,5 @@
+// React hook for Bin Files state and actions.
+
 import { useCallback, useState } from "react";
 import { getBinFiles } from "../api/filesApi";
 

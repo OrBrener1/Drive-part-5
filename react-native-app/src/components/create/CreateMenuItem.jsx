@@ -1,3 +1,5 @@
+// Reusable UI component: Create Menu Item.
+
 import { Pressable, Text } from "react-native";
 
 export default function CreateMenuItem({ label, onPress, color }) {

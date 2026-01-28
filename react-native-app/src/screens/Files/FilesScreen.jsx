@@ -1,3 +1,5 @@
+// Screen component for Files view.
+
 import { useCallback, useContext, useState } from "react";
 import { Text } from "react-native";
 import { usePathname, useRouter } from "expo-router";

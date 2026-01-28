@@ -1,3 +1,5 @@
+// React hook for File Actions state and actions.
+
 import { useCallback } from "react";
 import { Alert } from "react-native";
 import {

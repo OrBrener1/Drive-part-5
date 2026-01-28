@@ -1,3 +1,5 @@
+// React context for list/grid view mode state.
+
 import { createContext, useContext, useMemo, useState } from "react";
 
 const ViewModeContext = createContext({

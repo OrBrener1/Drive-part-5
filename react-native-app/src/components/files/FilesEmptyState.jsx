@@ -1,3 +1,5 @@
+// Reusable UI component: Files Empty State.
+
 import { useContext } from "react";
 import { View, Text } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

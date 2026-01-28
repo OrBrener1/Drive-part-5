@@ -1,3 +1,5 @@
+// Service layer for access-deny rules.
+
 const denyAccessRepository = require('../mongoRepository/denyAccessRepository');
 
 async function addDeny(userId, fileId) {

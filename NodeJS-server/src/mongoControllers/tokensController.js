@@ -1,3 +1,5 @@
+// HTTP controllers for auth token endpoints.
+
 const jwt = require('jsonwebtoken');
 const userService = require('../mongoServices/userService');
 

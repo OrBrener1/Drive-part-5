@@ -1,3 +1,5 @@
+// Service layer for user accounts and auth helpers.
+
 const User = require('../mongoModels/usersModel');   
 
 // ========================

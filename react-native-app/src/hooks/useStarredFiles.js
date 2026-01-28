@@ -1,3 +1,5 @@
+// React hook for Starred Files state and actions.
+
 import { useCallback, useState } from "react";
 import { getStarredFiles } from "../api/filesApi";
 

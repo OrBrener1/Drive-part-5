@@ -1,3 +1,5 @@
+// Screen component for File View view.
+
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, Alert, View } from "react-native";

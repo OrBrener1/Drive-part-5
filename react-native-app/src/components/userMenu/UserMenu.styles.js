@@ -1,3 +1,5 @@
+// Styles for User Menu component.
+
 import { StyleSheet } from "react-native";
 import { ms } from "../../utils/scale";
 

@@ -1,3 +1,5 @@
+// React hook for Create Actions state and actions.
+
 import { createFile, createFolder } from "../api/filesApi";
 import { useFiles } from "./useFiles";
 

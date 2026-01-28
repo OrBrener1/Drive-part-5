@@ -1,3 +1,5 @@
+// Reusable UI component: Avatar.
+
 import { useContext, useMemo } from "react";
 import { View, Text, Image } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

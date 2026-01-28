@@ -1,3 +1,5 @@
+// Reusable UI component: Create Item Modal.
+
 import { Modal, View, Text } from "react-native";
 import { useContext } from "react";
 import { ThemeContext } from "../../theme/themeContext";

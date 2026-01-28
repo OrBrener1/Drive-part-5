@@ -1,3 +1,5 @@
+// HTTP controllers for user account endpoints.
+
 const userService = require('../mongoServices/userService');
 
 /**

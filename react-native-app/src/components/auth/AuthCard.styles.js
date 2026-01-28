@@ -1,3 +1,5 @@
+// Styles for Auth Card component.
+
 import { StyleSheet } from "react-native";
 import { ms } from "../../utils/scale";
 

@@ -1,3 +1,5 @@
+// Mongo repository for sharing permissions.
+
 const mongoose = require('mongoose');
 const Permission = require('../mongoModels/permissionModel');
 

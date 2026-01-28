@@ -1,3 +1,5 @@
+// API wrapper for files endpoints.
+
 import { apiFetch, apiFetchMultipart } from "./apiClient";
 import { makeHttpError } from "./apiClient";
 import { API_ENDPOINTS } from "./apiEndpoints";

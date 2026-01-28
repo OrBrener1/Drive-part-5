@@ -1,3 +1,5 @@
+// Reusable UI component: Side Drawer.
+
 import { Modal, Pressable, View } from "react-native";
 
 export default function SideDrawer({

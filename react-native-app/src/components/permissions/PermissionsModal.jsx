@@ -1,3 +1,5 @@
+// Reusable UI component: Permissions Modal.
+
 import { useContext, useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -60,7 +62,7 @@ function RoleSelect({ value, onChange, disabled }) {
           {ROLE_LABELS[value] || value}
         </Text>
         <MaterialIcons
-          name="arrow-drop-down"
+          name="arrow-drop-up"
           size={18}
           color={colors.textSecondary}
         />

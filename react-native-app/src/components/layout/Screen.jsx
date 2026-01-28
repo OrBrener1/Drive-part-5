@@ -1,3 +1,5 @@
+// Reusable UI component: Screen.
+
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

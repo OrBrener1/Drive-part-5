@@ -1,3 +1,5 @@
+// JWT authentication middleware (token validation only).
+
 const jwt = require('jsonwebtoken');
 
 // Same secret used when signing the JWT

@@ -1,3 +1,5 @@
+// Reusable UI component: User Menu.
+
 import { useContext, useMemo, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";

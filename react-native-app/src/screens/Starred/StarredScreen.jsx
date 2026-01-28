@@ -1,3 +1,5 @@
+// Screen component for Starred view.
+
 import { useCallback, useContext, useMemo, useState } from "react";
 import { Text } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";

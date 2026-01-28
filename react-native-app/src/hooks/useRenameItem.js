@@ -1,3 +1,5 @@
+// React hook for Rename Item state and actions.
+
 import { useMemo, useState } from "react";
 import { updateFileName } from "../api/filesApi";
 

@@ -1,3 +1,5 @@
+// Mongo repository for denied-access entries.
+
 const mongoose = require('mongoose');
 const DenyAccess = require('../mongoModels/denyAccessModel');
 

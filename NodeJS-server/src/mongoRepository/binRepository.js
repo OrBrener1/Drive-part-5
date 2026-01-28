@@ -1,3 +1,5 @@
+// Mongo repository for bin (trash) entries.
+
 const mongoose = require('mongoose');
 const Bin = require('../mongoModels/binModel');
 

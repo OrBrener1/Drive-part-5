@@ -1,3 +1,5 @@
+// Reusable UI component: Nav Menu.
+
 import { useContext } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";

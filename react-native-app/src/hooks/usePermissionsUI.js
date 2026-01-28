@@ -1,3 +1,5 @@
+// React hook for Permissions UI state and actions.
+
 import { useState } from "react";
 
 export function usePermissionsUI() {

@@ -1,3 +1,5 @@
+// Mongo repository for recently opened items.
+
 const mongoose = require('mongoose');
 const Recent = require('../mongoModels/recentModel');
 

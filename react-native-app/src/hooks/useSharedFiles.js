@@ -1,3 +1,5 @@
+// React hook for Shared Files state and actions.
+
 import { useCallback, useState } from "react";
 import { getSharedFiles } from "../api/filesApi";
 

@@ -1,3 +1,5 @@
+// Utility helpers for scale.
+
 import { Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");

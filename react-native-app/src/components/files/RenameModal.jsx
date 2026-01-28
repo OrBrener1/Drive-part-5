@@ -1,3 +1,5 @@
+// Reusable UI component: Rename Modal.
+
 import { useEffect, useRef, useContext } from "react";
 import { Keyboard, Modal, Platform, Pressable, Text, TextInput, View, KeyboardAvoidingView } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

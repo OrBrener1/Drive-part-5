@@ -1,3 +1,5 @@
+// React hook for Search Files state and actions.
+
 import { useEffect, useState } from "react";
 import { searchFiles } from "../api/filesApi";
 

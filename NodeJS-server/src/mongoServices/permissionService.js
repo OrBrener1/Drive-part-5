@@ -1,3 +1,5 @@
+// Service layer for share permissions.
+
 const permissionRepository = require('../mongoRepository/permissionRepository');
 const denyAccessService = require('./denyAccessService');
 

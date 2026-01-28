@@ -1,3 +1,5 @@
+// HTTP controllers for file/folder CRUD endpoints.
+
 const filesService = require('../services/filesService');
 const { attachOwnerInfo } = require('../mongoServices/ownerInfoService');
 

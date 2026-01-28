@@ -1,3 +1,5 @@
+// Service layer for bin/trash operations.
+
 const filesRepository = require('../mongoRepository/mongoFileRepository');
 const binRepository = require('../mongoRepository/binRepository');
 

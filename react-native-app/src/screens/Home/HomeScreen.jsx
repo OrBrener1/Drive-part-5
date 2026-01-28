@@ -1,3 +1,5 @@
+// Screen component for Home view.
+
 import { useCallback, useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";

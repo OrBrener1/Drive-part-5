@@ -1,3 +1,5 @@
+// Screen component for Bin view.
+
 import { useCallback, useContext, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 import { Text } from "react-native";

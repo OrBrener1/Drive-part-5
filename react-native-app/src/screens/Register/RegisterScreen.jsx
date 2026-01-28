@@ -1,3 +1,5 @@
+// Screen component for Register view.
+
 import React, { useState, useContext, useMemo } from "react";
 import { View, Text, TextInput, Pressable, Image,} from "react-native";
 import * as ImagePicker from "expo-image-picker";

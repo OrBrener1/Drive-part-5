@@ -1,3 +1,5 @@
+// Reusable UI component: Text File Viewer.
+
 import { useEffect, useRef, useState, useContext } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator, I18nManager } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -147,7 +149,7 @@ export default function TextFileViewer({ item }) {
             }}
           >
             <MaterialIcons
-              name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"}
+              name={I18nManager.isRTL ? "arrow-back" : "arrow-forward"}
               size={20}
               color={colors.textSecondary}
             />

@@ -1,3 +1,5 @@
+// React hook for Recent Files state and actions.
+
 import { useCallback, useState } from "react";
 import { getRecentFiles } from "../api/filesApi";
 

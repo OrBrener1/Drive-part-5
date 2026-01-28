@@ -1,3 +1,5 @@
+// HTTP controllers for permissions endpoints.
+
 const mongoose = require('mongoose');
 const permissionService = require('../mongoServices/permissionService');
 const filesService = require('../services/filesService');
@@ -84,7 +86,7 @@ async function createPermission(req, res) {
     const user = await userService.getUserByEmail(email);
 
     if (!user) {
-      return res.status(404).json({ error: `User with email '${email}' not found` });
+      return res.status(404).json({ error: 'USER_NOT_FOUND' });
     }
     userId = user._id;
   }

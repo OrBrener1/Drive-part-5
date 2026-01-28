@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Drive 2.0 - Setup Wizard"
+echo "🚀 Drive Me Nuts - Setup Wizard"
 echo ""
 
 # Check if Docker is running
@@ -27,107 +27,119 @@ if [ "$DEVICE_CHOICE" = "2" ]; then
     echo "Configuring for Android Emulator..."
     API_URL="http://10.0.2.2:5000/api"
     CORS_MOBILE="http://10.0.2.2:8081"
-    echo "⚠️  Make sure your Android Emulator is running before starting the app!"
+    echo ""
+    echo "⚠️  Important:"
+    echo "   - Make sure Android Studio is installed"
+    echo "   - Start your Android Emulator BEFORE running the app"
+    echo ""
     
 elif [ "$DEVICE_CHOICE" = "1" ]; then
     echo ""
-    echo "Configuring for real phone..."
+    echo "Configuring for real phone with Expo Go..."
+    echo ""
+    echo "================================"
+    echo "📋 Find Your WiFi IP Address:"
+    echo "================================"
+    echo ""
+    echo "Windows users:"
+    echo "  1. Open Command Prompt or PowerShell"
+    echo "  2. Run: ipconfig"
+    echo "  3. Look for 'Wireless LAN adapter Wi-Fi'"
+    echo "  4. Find the 'IPv4 Address' (e.g., 192.168.1.158)"
+    echo ""
+    echo "Linux users:"
+    echo "  1. Open terminal"
+    echo "  2. Run: ip addr show"
+    echo "  3. Look for your WiFi interface (wlan0, wlp3s0, etc.)"
+    echo "  4. Find the 'inet' address (e.g., 192.168.1.158)"
+    echo ""
+    echo "macOS users:"
+    echo "  1. Open terminal"
+    echo "  2. Run: ifconfig"
+    echo "  3. Look for 'en0' (WiFi) or 'en1' (Ethernet)"
+    echo "  4. Find the 'inet' address (e.g., 192.168.1.158)"
+    echo ""
+    echo "⚠️  Common WiFi IP formats:"
+    echo "   - 192.168.1.x (most common)"
+    echo "   - 192.168.0.x"
+    echo "   - 192.168.10.x"
+    echo "   - 10.0.0.x"
+    echo ""
+    echo "❌ AVOID these IPs (they won't work):"
+    echo "   - 127.0.0.1 (localhost)"
+    echo "   - 172.27.x.x (WSL virtual network)"
+    echo "   - 192.168.56.x (VirtualBox)"
+    echo "   - 192.168.144.x (Hyper-V)"
+    echo "   - 169.254.x.x (link-local)"
+    echo ""
+    echo "================================"
+    echo ""
     
-    HOST_IP=""
-    
-    # Detect if running in WSL
-    if grep -qi microsoft /proc/version 2>/dev/null; then
-        # Running in WSL - get Windows host IP
-        if command -v powershell.exe &> /dev/null; then
-            # Get all Windows IPs
-            ALL_IPS=$(powershell.exe "Get-NetIPAddress -AddressFamily IPv4 | Select-Object -ExpandProperty IPAddress" 2>/dev/null | tr -d '\r')
-            
-            # Filter out unwanted IPs (loopback, link-local, WSL, VirtualBox)
-            FILTERED_IPS=$(echo "$ALL_IPS" | grep -v "^127\." | grep -v "^169\.254\." | grep -v "^172\.27\." | grep -v "^192\.168\.56\.")
-            
-            # Prefer home router IPs (192.168.0.x or 192.168.1.x)
-            HOME_IP=$(echo "$FILTERED_IPS" | grep -E "^192\.168\.[01]\." | head -n 1)
-            
-            # Use home IP if found, otherwise use first filtered IP
-            if [ -n "$HOME_IP" ]; then
-                HOST_IP="$HOME_IP"
-            else
-                HOST_IP=$(echo "$FILTERED_IPS" | head -n 1)
-            fi
-        fi
-    else
-        # Native Linux or macOS
-        if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux" ]]; then
-            if command -v ip &> /dev/null; then
-                # Get interface with default route
-                DEFAULT_IFACE=$(ip route | grep "^default" | awk '{print $5}' | head -n 1)
-                
-                if [ -n "$DEFAULT_IFACE" ]; then
-                    HOST_IP=$(ip -4 addr show "$DEFAULT_IFACE" | \
-                              grep inet | \
-                              awk '{print $2}' | \
-                              cut -d'/' -f1 | \
-                              grep -v "127.0.0.1")
-                fi
-                
-                # Fallback: get from any UP interface (excluding virtual)
-                if [ -z "$HOST_IP" ]; then
-                    HOST_IP=$(ip -4 -o addr show up | \
-                              awk '{print $2, $4}' | \
-                              grep -v " lo" | \
-                              grep -v "docker" | \
-                              grep -v "veth" | \
-                              grep -v "virbr" | \
-                              grep -v "vbox" | \
-                              grep -v "br-" | \
-                              awk '{print $2}' | \
-                              cut -d'/' -f1 | \
-                              head -n 1)
-                fi
-            fi
-            
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS: Get IP from interface with default route
-            DEFAULT_IFACE=$(netstat -rn | grep "^default" | awk '{print $6}' | head -n 1)
-            
-            if [ -n "$DEFAULT_IFACE" ]; then
-                HOST_IP=$(ifconfig "$DEFAULT_IFACE" | \
-                          grep "inet " | \
-                          grep -v "127.0.0.1" | \
-                          awk '{print $2}')
-            fi
-        fi
-    fi
-    
-    # Ask user to confirm or provide IP
-    if [ -z "$HOST_IP" ]; then
-        echo "⚠️  Could not detect IP automatically"
-        echo ""
-        echo "Find your WiFi IP:"
-        echo "  Windows: ipconfig (look for 'Wireless LAN adapter Wi-Fi')"
-        echo "  Linux:   ip addr show"
-        echo "  macOS:   ifconfig"
-        echo ""
+    # Get IP from user
+    while true; do
         read -p "Enter your WiFi IP address: " HOST_IP
         
-        while [ -z "$HOST_IP" ]; do
-            echo "❌ IP address cannot be empty"
-            read -p "Enter your WiFi IP address: " HOST_IP
-        done
-    else
-        echo "Detected IP: $HOST_IP"
-        read -p "Press Enter to use this IP, or type a different one: " USER_IP
-        
-        if [ -n "$USER_IP" ]; then
-            HOST_IP="$USER_IP"
+        # Check if empty
+        if [ -z "$HOST_IP" ]; then
+            echo "❌ IP address cannot be empty. Please try again."
+            echo ""
+            continue
         fi
-    fi
+        
+        # Basic validation - check if it looks like an IP
+        if ! [[ "$HOST_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid IP format. Should be like: 192.168.1.158"
+            echo ""
+            continue
+        fi
+        
+        # Warn about common wrong IPs
+        if [[ "$HOST_IP" =~ ^127\. ]]; then
+            echo "❌ This is localhost (127.x.x.x) - it won't work for mobile!"
+            echo "   Please enter your WiFi IP address."
+            echo ""
+            continue
+        fi
+        
+        if [[ "$HOST_IP" =~ ^172\.27\. ]]; then
+            echo "⚠️  Warning: This looks like a WSL virtual network IP (172.27.x.x)"
+            echo "   This might not work. Please check your WiFi IP with 'ipconfig'"
+            echo ""
+            read -p "Continue anyway? (y/n): " CONTINUE
+            if [[ ! "$CONTINUE" =~ ^[Yy]$ ]]; then
+                continue
+            fi
+        fi
+        
+        if [[ "$HOST_IP" =~ ^192\.168\.56\. ]] || [[ "$HOST_IP" =~ ^192\.168\.144\. ]]; then
+            echo "⚠️  Warning: This looks like a virtual adapter IP (192.168.56.x or 192.168.144.x)"
+            echo "   This might not work. Please check your WiFi IP with 'ipconfig'"
+            echo ""
+            read -p "Continue anyway? (y/n): " CONTINUE
+            if [[ ! "$CONTINUE" =~ ^[Yy]$ ]]; then
+                continue
+            fi
+        fi
+        
+        if [[ "$HOST_IP" =~ ^169\.254\. ]]; then
+            echo "❌ This is a link-local address (169.254.x.x) - it won't work!"
+            echo "   Your computer is not connected to a network properly."
+            echo ""
+            continue
+        fi
+        
+        # If we got here, IP looks reasonable
+        break
+    done
     
     API_URL="http://${HOST_IP}:5000/api"
     CORS_MOBILE="http://${HOST_IP}:8081"
     
-    echo "Mobile app will connect to: $API_URL"
-    echo "⚠️  Ensure your phone is on the same WiFi network!"
+    echo ""
+    echo "✅ Configuration set:"
+    echo "   Mobile app will connect to: $API_URL"
+    echo ""
+    echo "⚠️  IMPORTANT: Make sure your phone is on the SAME WiFi network!"
     echo ""
     
 elif [ "$DEVICE_CHOICE" = "3" ]; then
@@ -228,9 +240,12 @@ if [ "$DEVICE_CHOICE" = "1" ] || [ "$DEVICE_CHOICE" = "2" ]; then
     echo ""
         
     if [ "$DEVICE_CHOICE" = "2" ]; then
-        echo "📱 Press 'a' to open in Android emulator"
+        echo "📱 Android Emulator:"
+        echo "   Press 'a' to open in Android emulator"
     else
-        echo "📱 Scan QR code with Expo Go on your phone"
+        echo "📱 Real Phone:"
+        echo "   1. Open Expo Go app on your phone"
+        echo "   2. Scan the QR code below"
     fi
         
     echo ""

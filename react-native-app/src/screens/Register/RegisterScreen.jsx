@@ -71,7 +71,7 @@ export default function RegisterScreen() {
   // ---- Image handlers ----
   const pickImageFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -93,7 +93,7 @@ export default function RegisterScreen() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -239,13 +239,15 @@ export default function RegisterScreen() {
 
             <View style={styles.imageActionsRow}>
         <Pressable style={styles.imageActionBtn} onPress={pickImageFromLibrary}>
-          <MaterialIcons name="cloud-upload" size={15} color={colors.primary} />
-          <Text style={styles.imageActionText}>Upload from device</Text>
+          <Text style={styles.imageActionText}>
+            Upload from device {"\uD83D\uDCE4"}
+          </Text>
         </Pressable>
 
         <Pressable style={styles.imageActionBtn} onPress={takePhoto}>
-          <MaterialIcons name="photo-camera" size={15} color={colors.primary} />
-          <Text style={styles.imageActionText}>Take a picture</Text>
+          <Text style={styles.imageActionText}>
+            Take a picture {"\uD83D\uDCF7"}
+          </Text>
         </Pressable>
       </View>
 

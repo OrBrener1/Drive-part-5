@@ -8,7 +8,7 @@ services:
     volumes:
       - cpp_storage:/storage_file
     ports:
-      - "8080:8080"   # חשוב
+      - "8080:8080"  
     restart: unless-stopped
 
   mongo:
@@ -36,6 +36,19 @@ services:
       SERVER_HOST: cpp-server
       SERVER_PORT: 8080
       MONGO_URI: mongodb://mongo:27017/drive
+    restart: unless-stopped
+
+  react-web:
+    build:
+      context: ./react-front
+      dockerfile: Dockerfile.react
+    container_name: react-web
+    ports:
+      - "3000:3000"
+    environment:
+      - BROWSER=none
+    stdin_open: true
+    tty: true
     restart: unless-stopped
 
 volumes:

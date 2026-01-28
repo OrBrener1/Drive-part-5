@@ -6,6 +6,20 @@ export function useFiles(parentId = null) {
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [error, setError] = useState(null);
 
+  const addFile = useCallback(
+    (item) => {
+      if (!item) return;
+      const itemParent = item?.parentId ?? null;
+      const currentParent = parentId ?? null;
+      if (String(itemParent ?? "") !== String(currentParent ?? "")) return;
+      setFiles((prev) => {
+        const exists = prev.some((f) => String(f.id) === String(item.id));
+        return exists ? prev : [item, ...prev];
+      });
+    },
+    [parentId]
+  );
+
   const loadFiles = useCallback(async () => {
     setStatus("loading");
     setError(null);
@@ -21,6 +35,6 @@ export function useFiles(parentId = null) {
     }
   }, [parentId]);
 
-  return { files, status, error, loadFiles };
+  return { files, status, error, loadFiles, addFile };
 }
 

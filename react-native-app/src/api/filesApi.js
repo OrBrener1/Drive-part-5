@@ -27,7 +27,7 @@ export async function createItem({ name, type, parentId, content }) {
     );
   }
 
- return { ok: true };
+  return response.json();
 
 }
 
@@ -131,7 +131,6 @@ function readBlobAsDataUrl(blob, mimeType) {
 // Fetch files by parent (root or folder)
 // Endpoint: GET /files?parentId=...
 export async function getFiles(parentId = null) {
-  console.log("FETCH FILES parentId =", parentId);
   const url = parentId
     ? `${API_ENDPOINTS.FILES}?parentId=${parentId}`
     : API_ENDPOINTS.FILES;

@@ -114,7 +114,13 @@ function RoleSelect({ value, onChange, disabled }) {
   );
 }
 
-export default function PermissionsModal({ visible, item, onClose, onAccessRevoked }) {
+export default function PermissionsModal({
+  visible,
+  item,
+  onClose,
+  onAccessRevoked,
+  onPermissionsUpdated,
+}) {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { user: currentUser } = useContext(AuthContext);
@@ -215,6 +221,7 @@ export default function PermissionsModal({ visible, item, onClose, onAccessRevok
       setNewRole("READ");
       setNotice({ type: "success", message: "Access granted" });
       setStatus("success");
+      onPermissionsUpdated?.(itemId);
     } catch (err) {
       setNotice({
         type: "error",
@@ -237,6 +244,7 @@ export default function PermissionsModal({ visible, item, onClose, onAccessRevok
     try {
       await updatePermission(itemId, permissionId, nextRole);
       setNotice({ type: "success", message: "Permission updated" });
+      onPermissionsUpdated?.(itemId);
     } catch (err) {
       setNotice({
         type: "error",
@@ -274,10 +282,12 @@ export default function PermissionsModal({ visible, item, onClose, onAccessRevok
                 prev.filter((p) => (p.id || p._id) !== permissionId)
               );
               if (isSelf) {
+                onPermissionsUpdated?.(itemId);
                 onAccessRevoked?.(itemId);
                 onClose?.();
                 return;
               }
+              onPermissionsUpdated?.(itemId);
               setNotice({ type: "success", message: "Access removed" });
             } catch (err) {
               setNotice({

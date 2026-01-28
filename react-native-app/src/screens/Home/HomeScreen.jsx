@@ -25,7 +25,7 @@ export default function HomeScreen() {
   const { theme } = useContext(ThemeContext);
   const { colors } = theme;
   const { user } = useContext(AuthContext);
-  const { files, status, error, loadFiles } = useRecentFiles();
+  const { files, status, error, loadFiles, addFile } = useRecentFiles();
   const { openMenu, closeMenu, menuOpen } = useCreateUI();
   const router = useRouter();
   const pathname = usePathname();
@@ -204,8 +204,15 @@ export default function HomeScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
         onAccessRevoked={loadFiles}
+        onPermissionsUpdated={loadFiles}
       />
-      <CreateOverlay onRefresh={loadFiles} onCreated={() => setQuery("")} />
+      <CreateOverlay
+        onRefresh={loadFiles}
+        onCreated={(created) => {
+          if (created) addFile(created);
+          setQuery("");
+        }}
+      />
       <CreateFab
         onPress={() => (menuOpen ? closeMenu() : openMenu())}
         active={menuOpen}

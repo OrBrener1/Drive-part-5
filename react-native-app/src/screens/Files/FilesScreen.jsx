@@ -27,7 +27,7 @@ export default function FilesScreen({ parentId = null, onBack, origin }) {
   const { colors } = theme;
 
   const { user } = useContext(AuthContext);
-  const { files, status, error, loadFiles } = useFiles(parentId);
+  const { files, status, error, loadFiles, addFile } = useFiles(parentId);
   const permissionsUI = usePermissionsUI();
   const [query, setQuery] = useState("");
   const { viewMode, toggleViewMode } = useViewMode();
@@ -122,11 +122,15 @@ export default function FilesScreen({ parentId = null, onBack, origin }) {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
         onAccessRevoked={loadFiles}
+        onPermissionsUpdated={loadFiles}
       />
       <CreateOverlay
         parentId={parentId}
         onRefresh={loadFiles}
-        onCreated={() => setQuery("")}
+        onCreated={(created) => {
+          if (created) addFile(created);
+          setQuery("");
+        }}
       />
       <CreateFab
         onPress={() => (menuOpen ? closeMenu() : openMenu())}

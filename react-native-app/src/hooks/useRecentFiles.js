@@ -6,6 +6,14 @@ export function useRecentFiles() {
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
 
+  const addFile = useCallback((item) => {
+    if (!item) return;
+    setFiles((prev) => {
+      const exists = prev.some((f) => String(f.id) === String(item.id));
+      return exists ? prev : [item, ...prev];
+    });
+  }, []);
+
   const loadFiles = useCallback(async () => {
     setStatus("loading");
     setError(null);
@@ -21,5 +29,5 @@ export function useRecentFiles() {
     }
   }, []);
 
-  return { files, status, error, loadFiles };
+  return { files, status, error, loadFiles, addFile };
 }

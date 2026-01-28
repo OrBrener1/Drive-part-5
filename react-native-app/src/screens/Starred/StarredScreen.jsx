@@ -122,6 +122,7 @@ export default function StarredScreen() {
         item={permissionsUI.permItem}
         onClose={permissionsUI.closePermissions}
         onAccessRevoked={loadFiles}
+        onPermissionsUpdated={loadFiles}
       />
       <CreateOverlay onRefresh={loadFiles} />
       <CreateFab

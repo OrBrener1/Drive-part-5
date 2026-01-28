@@ -2,6 +2,7 @@ import React, { useState, useContext, useMemo } from "react";
 import { View, Text, TextInput, Pressable, Image,} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 import { createStyles } from "./RegisterScreen.styles";
 import { ThemeContext } from "../../theme/themeContext";
 import { AuthContext } from "../../context/AuthContext";
@@ -70,7 +71,7 @@ export default function RegisterScreen() {
   // ---- Image handlers ----
   const pickImageFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -92,6 +93,7 @@ export default function RegisterScreen() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -235,17 +237,18 @@ export default function RegisterScreen() {
       {/* Profile Picture */}
       <Text style={styles.sectionLabel}>Choose profile picture</Text>
 
-      <View style={styles.imageActionsRow}>
+            <View style={styles.imageActionsRow}>
         <Pressable style={styles.imageActionBtn} onPress={pickImageFromLibrary}>
-          <Text style={styles.imageActionIcon}>⬆️</Text>
+          <MaterialIcons name="cloud-upload" size={15} color={colors.primary} />
           <Text style={styles.imageActionText}>Upload from device</Text>
         </Pressable>
 
         <Pressable style={styles.imageActionBtn} onPress={takePhoto}>
-          <Text style={styles.imageActionIcon}>📷</Text>
+          <MaterialIcons name="photo-camera" size={15} color={colors.primary} />
           <Text style={styles.imageActionText}>Take a picture</Text>
         </Pressable>
       </View>
+
 
       {imageUri && (
         <>

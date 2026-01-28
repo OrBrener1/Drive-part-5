@@ -7,17 +7,19 @@ import { AuthContext } from "../../context/AuthContext";
 import Avatar from "../avatar/Avatar";
 import BottomSheet from "../bottomSheet/BottomSheet";
 import { createStyles } from "./UserMenu.styles";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function UserMenu({ visible, onClose }) {
   // Access global theme (colors, spacing, typography, radius)
   const { theme, mode, toggleTheme } = useContext(ThemeContext);
   const styles = createStyles(theme);
+  const { colors } = theme;
 
   // Auth data and actions
   const { user, logout, updateUserAvatar } = useContext(AuthContext);
   const router = useRouter();
   const themeToggleEmoji = useMemo(
-    () => (mode === "dark" ? "🌞" : "🌙"),
+    () => (mode === "dark" ? "☀️" : "🌙"),
     [mode]
   );
 
@@ -41,7 +43,7 @@ export default function UserMenu({ visible, onClose }) {
   // ---- Image handlers ----
   const pickImageFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -62,6 +64,7 @@ export default function UserMenu({ visible, onClose }) {
     }
 
     const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -100,7 +103,7 @@ export default function UserMenu({ visible, onClose }) {
           <View>
             <Avatar user={user} size="xl" />
             <View style={styles.avatarBadge}>
-              <Text style={styles.avatarBadgeIcon}>📷</Text>
+              <MaterialIcons name="photo-camera" size={16} color={colors.textPrimary} />
             </View>
           </View>
         </Pressable>
@@ -113,15 +116,8 @@ export default function UserMenu({ visible, onClose }) {
                 onPress={pickImageFromLibrary}
                 disabled={updatingAvatar}
               >
-                <Text style={styles.imageActionText}> ⬆️ Upload from device</Text>
-              </Pressable>
-
-              <Pressable
-                style={styles.imageActionBtn}
-                onPress={takePhoto}
-                disabled={updatingAvatar}
-              >
-                <Text style={styles.imageActionText}> 📷Take a picture</Text>
+                <MaterialIcons name="cloud-upload" size={16} color={colors.primary} />
+                <Text style={styles.imageActionText}>Upload from device</Text>
               </Pressable>
             </View>
 

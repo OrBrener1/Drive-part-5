@@ -1,13 +1,31 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Alert, Linking, Modal, Platform, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../../theme/themeContext";
 import RenameModal from "./RenameModal";
 import Avatar from "../avatar/Avatar";
+import BottomSheet from "../bottomSheet/BottomSheet";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { getDownloadUrl } from "../../api/filesApi";
+import { getDownloadUrl, getPermissions } from "../../api/filesApi";
 import { getToken } from "../../api/apiClient";
+
+
+const ICONS = {
+  info: "\u2139\uFE0F",
+  people: "\uD83D\uDC65",
+  star: "\u2B50",
+  download: "\u2B07",
+  rename: "\u270F\uFE0F",
+  move: "\u2194",
+  restore: "\u267B\uFE0F",
+  delete: "\u274C",
+  bin: "\uD83D\uDDD1\uFE0F",
+  folder: "\uD83D\uDCC1",
+  image: "\uD83D\uDDBC\uFE0F",
+  file: "\uD83D\uDCC4",
+  dash: "\u2014",
+};
 
 export default function FileRow({
   item,
@@ -27,6 +45,8 @@ export default function FileRow({
   const { colors } = theme;
   const [menuOpen, setMenuOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsShared, setDetailsShared] = useState(null);
 
   const isFolder = item?.type === "folder";
   const isImage = item?.contentType === "image";
@@ -48,6 +68,7 @@ export default function FileRow({
     : null;
   const lastOpenedLabel = formatDateTime(item?.lastOpened);
   const createdAtLabel = formatDateTime(item?.createdAt);
+  const ownerId = item?.ownerId ? String(item.ownerId) : null;
   const showLastOpened = listContext === "recent" || listContext === "home";
   const timestampLabel = showLastOpened
     ? lastOpenedLabel
@@ -173,17 +194,26 @@ export default function FileRow({
   }
 
   const menuItems = useMemo(() => {
-    const items = [];
+    const items = [
+      {
+        key: "details",
+        icon: ICONS.info,
+        label: "Details",
+        onPress: () => setDetailsOpen(true),
+      },
+    ];
     if (onOpenPermissions) {
       items.push({
         key: "permissions",
-        label: "Access & Permissions",
+        icon: ICONS.people,
+        label: "Permissions",
         onPress: () => onOpenPermissions(item),
       });
     }
     if (onToggleStar) {
       items.push({
         key: "star",
+        icon: ICONS.star,
         label: isStarred ? "Unstar" : "Star",
         onPress: () => onToggleStar(item),
       });
@@ -191,6 +221,8 @@ export default function FileRow({
     if (!isBinView && item?.type === "file") {
       items.push({
         key: "download",
+        icon: ICONS.download,
+        iconSize: 20,
         label: "Download",
         onPress: handleDownload,
       });
@@ -198,6 +230,7 @@ export default function FileRow({
     if (!isBinView && onRenameSuccess) {
       items.push({
         key: "rename",
+        icon: ICONS.rename,
         label: "Rename",
         onPress: () => setRenameOpen(true),
       });
@@ -205,6 +238,8 @@ export default function FileRow({
     if (!isBinView && onMove) {
       items.push({
         key: "move",
+        icon: ICONS.move,
+        iconSize: 24,
         label: "Move",
         onPress: () => onMove(item),
       });
@@ -212,6 +247,7 @@ export default function FileRow({
     if (isBinView && onRestoreFromBin) {
       items.push({
         key: "restore",
+        icon: ICONS.restore,
         label: "Restore",
         onPress: () => onRestoreFromBin(item),
       });
@@ -219,13 +255,15 @@ export default function FileRow({
     if (isBinView && onDeleteForever) {
       items.push({
         key: "delete_forever",
+        icon: ICONS.delete,
         label: "Delete forever",
         onPress: () => onDeleteForever(item),
       });
     } else if (!isBinView && onMoveToBin) {
       items.push({
         key: "bin",
-        label: "Move to Bin",
+        icon: ICONS.bin,
+        label: "Move to bin",
         onPress: () => onMoveToBin(item),
       });
     }
@@ -241,6 +279,29 @@ export default function FileRow({
     onRestoreFromBin,
     onToggleStar,
   ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDetails() {
+      if (!detailsOpen || !item?.id) return;
+      try {
+        const perms = await getPermissions(item.id);
+        if (cancelled) return;
+        if (!Array.isArray(perms) || !ownerId) {
+          setDetailsShared(null);
+          return;
+        }
+        const hasNonOwner = perms.some((p) => String(p.userId) !== ownerId);
+        setDetailsShared(hasNonOwner);
+      } catch {
+        if (!cancelled) setDetailsShared(null);
+      }
+    }
+    loadDetails();
+    return () => {
+      cancelled = true;
+    };
+  }, [detailsOpen, item?.id, ownerId]);
 
   return (
     <>
@@ -260,9 +321,7 @@ export default function FileRow({
       >
         {isGrid ? (
           <View style={{ alignItems: "center", gap: 8 }}>
-            <Text style={{ fontSize: 24 }}>
-              {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
-            </Text>
+            <Text style={{ fontSize: 24 }}>{isFolder ? ICONS.folder : isImage ? ICONS.image : ICONS.file}</Text>
             <Text
               style={{ color: colors.textPrimary, fontSize: 14, textAlign: "center" }}
               numberOfLines={2}
@@ -300,9 +359,7 @@ export default function FileRow({
           </View>
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Text style={{ fontSize: 20 }}>
-              {isFolder ? "📁" : isImage ? "🖼️" : "📄"}
-            </Text>
+            <Text style={{ fontSize: 20 }}>{isFolder ? ICONS.folder : isImage ? ICONS.image : ICONS.file}</Text>
 
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -384,9 +441,16 @@ export default function FileRow({
                   borderBottomColor: colors.border,
                 }}
               >
-                <Text style={{ color: colors.textPrimary, fontSize: 15 }}>
-                  {menuItem.label}
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  {menuItem.icon && (
+                    <Text style={{ fontSize: menuItem.iconSize || 18 }}>
+                      {menuItem.icon}
+                    </Text>
+                  )}
+                  <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                    {menuItem.label}
+                  </Text>
+                </View>
               </Pressable>
             ))}
           </View>
@@ -401,7 +465,101 @@ export default function FileRow({
           onRenameSuccess?.(item, newName);
         }}
       />
+
+      <BottomSheet
+        visible={detailsOpen}
+        onClose={() => {
+          setDetailsOpen(false);
+          setDetailsShared(null);
+        }}
+        titleLeft="Details"
+        titleRight="Close"
+        heightPercent={0.55}
+      >
+        <View style={{ width: "100%", gap: 16 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: colors.background,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <MaterialIcons
+                name={getDetailsIconName(item)}
+                size={24}
+                color={colors.textSecondary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+                {item?.name || "Untitled"}
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                {item?.type === "folder" ? "Folder" : "File"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ gap: 16 }}>
+            <DetailRow label="Type" value={item?.type || ICONS.dash} />
+            {item?.type === "file" && (
+              <DetailRow label="Content" value={item?.contentType || ICONS.dash} />
+            )}
+            <DetailRow label="Created" value={createdAtLabel || ICONS.dash} />
+            <DetailRow label="Last opened" value={lastOpenedLabel || ICONS.dash} />
+            <DetailRow
+              label="Shared"
+              value={(detailsShared ?? isShared) ? "Yes" : "No"}
+            />
+            <DetailRow label="Starred" value={isStarred ? "Yes" : "No"} />
+          </View>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+              Owner
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <Avatar
+                user={{
+                  id: item?.ownerId,
+                  displayName: item?.ownerName || "Me",
+                  email: item?.ownerEmail,
+                  image: item?.ownerImage,
+                }}
+                size="md"
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, color: colors.textPrimary }}>
+                  {item?.ownerName || "Me"}
+                </Text>
+                {item?.ownerEmail && (
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    {item.ownerEmail}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+      </BottomSheet>
     </>
+  );
+}
+
+function DetailRow({ label, value }) {
+  return (
+    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}>
+      <Text style={{ fontSize: 14, color: "#6b7280" }}>{label}</Text>
+      <Text style={{ fontSize: 14, color: "#111827", flexShrink: 1, textAlign: "right" }}>
+        {value}
+      </Text>
+    </View>
   );
 }
 
@@ -420,6 +578,13 @@ function formatDateTime(value) {
   } catch {
     return null;
   }
+}
+
+function getDetailsIconName(item) {
+  if (item?.type === "folder") return "folder";
+  if (item?.contentType === "image") return "image";
+  if (item?.contentType === "text") return "description";
+  return "insert-drive-file";
 }
 
 function detectMimeFromName(name) {

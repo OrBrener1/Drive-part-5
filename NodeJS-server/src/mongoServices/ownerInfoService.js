@@ -1,3 +1,5 @@
+// Service layer that enriches items with owner info.
+
 const userService = require('./userService');
 const permissionService = require('./permissionService');
 

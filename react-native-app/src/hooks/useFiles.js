@@ -1,3 +1,5 @@
+// React hook for Files state and actions.
+
 import { useCallback, useState } from "react";
 import { getFiles } from "../api/filesApi";
 

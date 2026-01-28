@@ -1,3 +1,5 @@
+// Express app entry: CORS, body parsing, and Mongo-backed routes.
+
 const express = require('express');
 const cors = require('cors');
 const app = express();

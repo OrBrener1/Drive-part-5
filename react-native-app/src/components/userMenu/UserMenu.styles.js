@@ -1,3 +1,5 @@
+// Styles for User Menu component.
+
 import { StyleSheet } from "react-native";
 import { ms } from "../../utils/scale";
 
@@ -62,9 +64,9 @@ export function createStyles(theme) {
     imageActionsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      gap: ms(8),
+      gap: ms(10),
       width: "100%",
-      paddingHorizontal: spacing.xl,
+      paddingHorizontal: spacing.lg,
       marginTop: spacing.md,
     },
 
@@ -75,17 +77,18 @@ export function createStyles(theme) {
       justifyContent: "center",
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: ms(12),
+      borderRadius: ms(14),
       paddingVertical: ms(10),
-      gap: ms(4),
+      minHeight: ms(46),
+      gap: ms(6),
     },
 
     imageActionText: {
       color: colors.primary,
       fontWeight: "500",
-      fontSize: ms(13),
+      fontSize: ms(12),
       textAlign: "center",
-      width: "100%",
+      flexShrink: 1,
     },
 
     removeImageRow: {

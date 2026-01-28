@@ -1,3 +1,5 @@
+// Screen component for Register Screen.styles view.
+
 import { StyleSheet } from "react-native";
 import { ms } from "../../utils/scale";
 

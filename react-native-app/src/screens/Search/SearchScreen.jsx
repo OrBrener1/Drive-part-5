@@ -1,3 +1,5 @@
+// Screen component for Search view.
+
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Text } from "react-native";
 import { usePathname, useRouter } from "expo-router";

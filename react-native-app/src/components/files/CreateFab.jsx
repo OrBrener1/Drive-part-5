@@ -1,3 +1,5 @@
+// Reusable UI component: Create Fab.
+
 import { useContext, useEffect, useRef } from "react";
 import { Animated, Pressable, Text } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

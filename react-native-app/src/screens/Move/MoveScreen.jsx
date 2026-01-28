@@ -1,3 +1,5 @@
+// Screen component for Move view.
+
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Alert, I18nManager, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -181,7 +183,7 @@ export default function MoveScreen() {
             }}
           >
             <MaterialIcons
-              name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"}
+              name={I18nManager.isRTL ? "arrow-back" : "arrow-forward"}
               size={20}
               color={colors.textSecondary}
             />
@@ -330,7 +332,7 @@ export default function MoveScreen() {
             style={{ flexDirection: "row", alignItems: "center", marginBottom: spacing.sm }}
           >
             <MaterialIcons
-              name="arrow-back"
+              name="arrow-forward"
               size={18}
               color={colors.textSecondary}
             />
@@ -396,7 +398,7 @@ export default function MoveScreen() {
                   </View>
                   {activeTab === "locations" && (
                     <MaterialIcons
-                      name="chevron-right"
+                      name="chevron-left"
                       size={20}
                       color={colors.textSecondary}
                     />
@@ -446,7 +448,7 @@ export default function MoveScreen() {
                     <Text style={{ color: colors.textPrimary }}>{folder.name}</Text>
                   </View>
                   <MaterialIcons
-                    name="chevron-right"
+                    name="chevron-left"
                     size={20}
                     color={colors.textSecondary}
                   />

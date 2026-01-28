@@ -1,3 +1,5 @@
+// Reusable UI component: Loading State.
+
 import { useContext, useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, Animated, Easing, Image, Text, View } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

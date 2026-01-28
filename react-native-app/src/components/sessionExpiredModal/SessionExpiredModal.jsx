@@ -1,3 +1,5 @@
+// Reusable UI component: Session Expired Modal.
+
 import { useContext } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

@@ -1,3 +1,5 @@
+// Reusable UI component: File Viewer.
+
 import TextFileViewer from "./TextFileViewer";
 import ImageFileViewer from "./ImageFileViewer";
 

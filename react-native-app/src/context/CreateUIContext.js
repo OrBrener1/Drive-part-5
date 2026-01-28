@@ -1,3 +1,5 @@
+// React context for create menu UI state.
+
 import { createContext, useContext, useState } from "react";
 
 const CreateUIContext = createContext(null);

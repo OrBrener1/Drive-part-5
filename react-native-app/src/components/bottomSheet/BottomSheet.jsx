@@ -1,3 +1,5 @@
+// Reusable UI component: Bottom Sheet.
+
 import { useContext, useEffect, useRef } from "react";
 import { Modal, View, Pressable, Text, Dimensions, Animated } from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

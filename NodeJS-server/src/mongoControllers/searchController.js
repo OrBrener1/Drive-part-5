@@ -1,3 +1,5 @@
+// HTTP controllers for search endpoints.
+
 const filesService = require('../services/filesService');
 const { attachOwnerInfo } = require('../mongoServices/ownerInfoService');
 

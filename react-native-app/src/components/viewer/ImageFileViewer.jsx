@@ -1,3 +1,5 @@
+// Reusable UI component: Image File Viewer.
+
 import { View, Image, StyleSheet, Pressable, Text, Alert, Animated, Easing, I18nManager } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useContext, useMemo, useRef, useEffect } from "react";
@@ -111,7 +113,7 @@ export default function ImageFileViewer({ item, onRefresh }) {
           disabled={imageLoading || replacing}
         >
           <MaterialIcons
-            name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"}
+            name={I18nManager.isRTL ? "arrow-back" : "arrow-forward"}
             size={20}
             color={colors.textSecondary}
           />

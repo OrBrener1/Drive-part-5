@@ -1,3 +1,5 @@
+// HTTP controllers for raw file access endpoints.
+
 const filesRepository = require('../mongoRepository/mongoFileRepository');
 const cppClientService = require('../services/cppClientService');
 const permissionService = require('../mongoServices/permissionService');

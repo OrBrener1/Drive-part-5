@@ -1,3 +1,5 @@
+// Reusable UI component: Create Menu.
+
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";

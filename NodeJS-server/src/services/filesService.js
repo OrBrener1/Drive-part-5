@@ -427,7 +427,7 @@ const createFile = async (
       // Binary path (multipart upload / image replace)
       if (options.isBinary === true) {
         payload = content;          // Buffer – must NOT be modified
-        item.contentType = 'image';
+        item.contentType = options.contentType || 'image';
       } 
       // Text path (JSON / editor content)
       else {
@@ -585,7 +585,7 @@ const replaceFileContent = async (id, userId, buffer) => {
     if (!created) return 'CPP_ERROR';
 
     item.type = 'file';
-    item.contentType = 'image';
+    item.contentType = options.contentType || 'image';
 
     await filesRepository.updateFileMetaById(id, { contentType: 'image' });
 
@@ -1078,5 +1078,6 @@ module.exports = {
   getMoveFolders,
   getDescendantIdsForUser
 };
+
 
 

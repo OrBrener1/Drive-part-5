@@ -1,3 +1,5 @@
+// Express routes for file and permissions endpoints.
+
 const express = require('express');
 const router = express.Router();
 const filesController = require('../mongoControllers/FilesController');

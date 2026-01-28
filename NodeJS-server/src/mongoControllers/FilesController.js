@@ -1,3 +1,5 @@
+// HTTP controllers for file/folder CRUD endpoints.
+
 const filesService = require('../services/filesService');
 const { attachOwnerInfo } = require('../mongoServices/ownerInfoService');
 
@@ -182,6 +184,7 @@ const uploadFile = async (req, res) => {
   const name =
     (req.body && req.body.filename) || req.file.originalname || 'Untitled';
   const content = req.file.buffer;
+  const contentType = detectContentTypeFromBuffer(content);
 
   const result = await filesService.createFile(
   userId,
@@ -189,7 +192,7 @@ const uploadFile = async (req, res) => {
   'file',
   parentId,
   content,
-  { isBinary: true }
+  { isBinary: true, contentType }
 );
 
   if (typeof result === 'string') {
@@ -422,3 +425,12 @@ module.exports = {
   replaceFileById,
   getDescendants,
 };
+
+function detectContentTypeFromBuffer(buf) {
+  if (!Buffer.isBuffer(buf) || buf.length < 4) return 'text';
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image';
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image';
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return 'image';
+  return 'text';
+}
+

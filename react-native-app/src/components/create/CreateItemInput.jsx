@@ -1,3 +1,5 @@
+// Reusable UI component: Create Item Input.
+
 import { TextInput, Text, View } from "react-native";
 import { useContext } from "react";
 import { ThemeContext } from "../../theme/themeContext";

@@ -1,3 +1,5 @@
+// Reusable UI component: File Row.
+
 import { useContext, useEffect, useMemo, useState } from "react";
 import { Alert, Linking, Modal, Platform, Pressable, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";

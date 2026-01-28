@@ -1,3 +1,5 @@
+// Mongo repository for file/folder Item documents.
+
 const Item = require('../mongoModels/ItemModel');
 const FileSystemItemFactory = require('../models/FileSystemItemFactory');
 const mongoose = require('mongoose');

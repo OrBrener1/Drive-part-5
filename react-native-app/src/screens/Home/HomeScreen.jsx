@@ -1,3 +1,5 @@
+// Screen component for Home view.
+
 import { useCallback, useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
@@ -206,13 +208,7 @@ export default function HomeScreen() {
         onAccessRevoked={loadFiles}
         onPermissionsUpdated={loadFiles}
       />
-      <CreateOverlay
-        onRefresh={loadFiles}
-        onCreated={(created) => {
-          if (created) addFile(created);
-          setQuery("");
-        }}
-      />
+      <CreateOverlay onRefresh={loadFiles} />
       <CreateFab
         onPress={() => (menuOpen ? closeMenu() : openMenu())}
         active={menuOpen}

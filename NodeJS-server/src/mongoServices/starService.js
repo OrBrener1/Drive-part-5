@@ -1,3 +1,5 @@
+// Service layer for starred items.
+
 const starRepository = require('../mongoRepository/starRepository');
 
 async function toggle(userId, fileId) {

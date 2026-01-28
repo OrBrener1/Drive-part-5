@@ -1,3 +1,5 @@
+// Utility helpers for error Messages.
+
 const STATUS_MESSAGES = {
   400: "Bad request. Check your input.",
   401: "Session expired. Please log in again.",
@@ -29,6 +31,7 @@ const CODE_MESSAGES = {
   "user already exists": "User already exists.",
   "User already has permission. Update existing permission instead.": "User already has access.",
   "Cannot share file with yourself": "You cannot share an item with yourself.",
+  USER_NOT_FOUND: "No such user.",
   FETCH_FILES_FAILED: "Couldn't load files.",
   FETCH_SHARED_FILES_FAILED: "Couldn't load shared files.",
   FETCH_RECENT_FILES_FAILED: "Couldn't load recent files.",

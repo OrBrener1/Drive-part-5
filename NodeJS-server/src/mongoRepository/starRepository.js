@@ -1,3 +1,5 @@
+// Mongo repository for starred items.
+
 const mongoose = require('mongoose');
 const Star = require('../mongoModels/starModel');
 

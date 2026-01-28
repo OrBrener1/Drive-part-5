@@ -1,3 +1,5 @@
+// Reusable UI component: User Menu.
+
 import { useContext, useMemo, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -19,11 +21,11 @@ export default function UserMenu({ visible, onClose }) {
   const { user, logout, updateUserAvatar } = useContext(AuthContext);
   const router = useRouter();
   const themeToggleEmoji = useMemo(
-    () => (mode === "dark" ? "☀️" : "🌙"),
+    () => (mode === "dark" ? "\u2600\uFE0F" : "\uD83C\uDF19"),
     [mode]
   );
 
-  const [showAvatarActions, setShowAvatarActions] = useState(false);
+  const [showAvatarActions, setShowAvatarActions] = useState(true);
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState("");
 
@@ -43,7 +45,7 @@ export default function UserMenu({ visible, onClose }) {
   // ---- Image handlers ----
   const pickImageFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -64,7 +66,7 @@ export default function UserMenu({ visible, onClose }) {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -116,8 +118,18 @@ export default function UserMenu({ visible, onClose }) {
                 onPress={pickImageFromLibrary}
                 disabled={updatingAvatar}
               >
-                <MaterialIcons name="cloud-upload" size={16} color={colors.primary} />
-                <Text style={styles.imageActionText}>Upload from device</Text>
+                <Text style={styles.imageActionText}>
+                  Upload from device {"\uD83D\uDCE4"}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={styles.imageActionBtn}
+                onPress={takePhoto}
+                disabled={updatingAvatar}
+              >
+                <Text style={styles.imageActionText}>
+                  Take a picture {"\uD83D\uDCF7"}
+                </Text>
               </Pressable>
             </View>
 
@@ -153,9 +165,12 @@ export default function UserMenu({ visible, onClose }) {
             //router.replace("public/login"); // Redirect to login screen
           }}
         >
-          <Text style={styles.logoutText}>🚪 Log out</Text>
+          <Text style={styles.logoutText}>{"\uD83D\uDEAA"} Log out</Text>
         </Pressable>
       </View>
     </BottomSheet>
   );
 }
+
+
+

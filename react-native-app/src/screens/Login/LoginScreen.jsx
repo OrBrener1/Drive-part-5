@@ -1,3 +1,5 @@
+// Screen component for Login view.
+
 import React, { useState, useContext, useMemo } from "react";
 import {View, Text, TextInput, Pressable,} from "react-native";
 import { ThemeContext } from "../../theme/themeContext";

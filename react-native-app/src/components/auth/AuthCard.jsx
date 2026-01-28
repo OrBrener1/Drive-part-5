@@ -1,3 +1,5 @@
+// Reusable UI component: Auth Card.
+
 import React, { useContext, useMemo } from "react";
 import { View, Text, Image, useWindowDimensions, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";

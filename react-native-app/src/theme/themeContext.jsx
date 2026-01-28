@@ -1,3 +1,5 @@
+// Theme context provider and helpers for the app theme.
+
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import * as FileSystem from "expo-file-system";
 import { lightTheme, darkTheme } from "./theme";

@@ -1,3 +1,5 @@
+// API wrapper for move endpoints.
+
 import { apiFetch, makeHttpError } from "./apiClient";
 import { API_ENDPOINTS } from "./apiEndpoints";
 

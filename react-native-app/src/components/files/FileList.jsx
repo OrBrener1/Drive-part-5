@@ -1,3 +1,5 @@
+// Reusable UI component: File List.
+
 import { FlatList } from "react-native";
 import FileRow from "./FileRow";
 

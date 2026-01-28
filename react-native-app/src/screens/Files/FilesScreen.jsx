@@ -127,10 +127,6 @@ export default function FilesScreen({ parentId = null, onBack, origin }) {
       <CreateOverlay
         parentId={parentId}
         onRefresh={loadFiles}
-        onCreated={(created) => {
-          if (created) addFile(created);
-          setQuery("");
-        }}
       />
       <CreateFab
         onPress={() => (menuOpen ? closeMenu() : openMenu())}

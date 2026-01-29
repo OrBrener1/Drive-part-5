@@ -59,10 +59,10 @@ must be accessible over the local network.
 To find the correct IP address of the host machine:
 
 - Open a terminal on the host machine
-- Run the following command:
-ip addr show
-Locate the active network interface (e.g. WiFi or Ethernet)
-Use the IPv4 address marked as inet, for example:
+- Run the following command:  
+ip addr show  
+Locate the active network interface (e.g. WiFi or Ethernet)  
+Use the IPv4 address marked as inet, for example:  
 
 inet 192.168.1.42/24. 
 
